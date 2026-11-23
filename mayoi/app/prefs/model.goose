@@ -21,6 +21,7 @@ let K_LIST = 5; let K_JSON = 6; let K_STYLES = 7;
 var flds: Fld[>..] = [];
 var opts: Opt[>..] = [];
 var vals: Val[>..] = [];
+var folder: Val[>..] = [];      // the keys the folder's .mayoi/settings.json chooses
 var built = false;
 
 // the window's own state
@@ -235,6 +236,36 @@ fn bool_of(key: const u8[:]) -> bool {
     return is_true(i);
 }
 
+// folder_has says whether the folder's own settings.json chooses key.
+fn folder_has(key: const u8[:]) -> bool {
+    var k: i64 = 0;
+    while k < folder.len {
+        if same(folder[k].key[0..folder[k].key.len], key) { return true; }
+        k++;
+    }
+    return false;
+}
+
+fn folder_mark(key: const u8[:], v: const u8[:]) {
+    var k: i64 = 0;
+    while k < folder.len {
+        if same(folder[k].key[0..folder[k].key.len], key) {
+            folder[k].v.resize(0);
+            var j: i64 = 0;
+            while j < v.len && j < 380 { folder[k].v.push(v[j]); j++; }
+            return;
+        }
+        k++;
+    }
+    var n: Val = Val { .. };
+    fill_key(n.key, key);
+    var j: i64 = 0;
+    while j < v.len && j < 380 { n.v.push(v[j]); j++; }
+    folder.push(n);
+}
+
+fn folder_clear() { folder.resize(0); }
+
 // value is what the field holds, or its default while nothing was chosen.
 fn value(i: i32) -> const u8[:] {
     let k = find_val(i);
@@ -243,6 +274,8 @@ fn value(i: i32) -> const u8[:] {
 }
 
 fn set(i: i32, v: const u8[:]) {
+    let key = flds[i].key[0..flds[i].key.len];
+    if folder_has(key) { folder_mark(key, v); }
     let k = find_val(i);
     if k >= 0 {
         vals[k].v.resize(0);

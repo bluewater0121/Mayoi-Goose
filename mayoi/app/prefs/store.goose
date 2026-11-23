@@ -4,6 +4,7 @@ namespace prefs;
 
 import std;
 import os;
+import app.state;
 import .model;
 
 fn join2(a: const u8[:], b: const u8[:]) -> u8[>..] {
@@ -159,6 +160,79 @@ fn quote(b: u8[>..]&, s: const u8[:]) {
     b.push('"');
 }
 
+fn folder_path() -> u8[>..] {
+    var p: u8[>..] = [];
+    p.append(state::root);
+    p.append("/.mayoi/settings.json");
+    return p;
+}
+
+// folder_load reads the folder's own .mayoi/settings.json over the
+// person's settings, and remembers the keys it chose, as the reference's
+// folderPrefs does.
+fn folder_load() {
+    init();
+    folder_clear();
+    if state::root.len == 0 { return; }
+    let p = folder_path();
+    if !file_exists(p[0..p.len]) { return; }
+    var src: u8[>..] = [];
+    if !read_file(p[0..p.len], src) { return; }
+    var i = skip_ws(src[0..src.len], 0);
+    if i >= src.len || src[i] != '{' { return; }
+    i++;
+    while i < src.len {
+        i = skip_ws(src[0..src.len], i);
+        if i >= src.len || src[i] == '}' { return; }
+        if src[i] != '"' { return; }
+        var key: u8[>..] = [];
+        i = read_json_string(src[0..src.len], i, key);
+        i = skip_ws(src[0..src.len], i);
+        if i >= src.len || src[i] != ':' { return; }
+        i = skip_ws(src[0..src.len], i + 1);
+        if i >= src.len { return; }
+        var val: u8[>..] = [];
+        if src[i] == '"' { i = read_json_string(src[0..src.len], i, val); }
+        else if src[i] == '{' || src[i] == '[' { i = read_raw(src[0..src.len], i, val); }
+        else { i = read_token(src[0..src.len], i, val); }
+        apply_key(key[0..key.len], val[0..val.len]);
+        folder_mark(key[0..key.len], val[0..val.len]);
+        i = skip_ws(src[0..src.len], i);
+        if i < src.len && src[i] == ',' { i++; continue; }
+        if i < src.len && src[i] == '}' { return; }
+    }
+}
+
+// folder_save writes the keys the folder chooses into its own file.
+fn folder_save() {
+    if state::root.len == 0 || folder.len == 0 { return; }
+    var dir: u8[>..] = [];
+    dir.append(state::root);
+    dir.append("/.mayoi");
+    make_dir(dir[0..dir.len]);
+    var b: u8[>..] = [];
+    b.append("{\n");
+    var k: i64 = 0;
+    while k < folder.len {
+        if k > 0 { b.append(",\n"); }
+        b.append("  ");
+        quote(b, folder[k].key[0..folder[k].key.len]);
+        b.append(": ");
+        let v = folder[k].v[0..folder[k].v.len];
+        let f = index_of(folder[k].key[0..folder[k].key.len]);
+        if f >= 0 && plain(f) && (flds[f].kind == K_TEXT || flds[f].kind == K_ENUM) {
+            quote(b, v);
+        } else {
+            var j: i64 = 0;
+            while j < v.len { b.push(v[j]); j++; }
+        }
+        k++;
+    }
+    b.append("\n}\n");
+    let p = folder_path();
+    write_file(p[0..p.len], b[0..b.len]);
+}
+
 // store_save writes every setting that differs from its default, as the
 // reference writes the preferences it changed.
 fn store_save() {
@@ -170,7 +244,7 @@ fn store_save() {
     var first = true;
     var i: i32 = 0;
     while i < flds.len as i32 {
-        if changed(i) {
+        if changed(i) && !folder_has(flds[i].key[0..flds[i].key.len]) {
             let v = value(i);
             let kind = flds[i].kind;
             var skip = false;
@@ -195,5 +269,6 @@ fn store_save() {
     b.append("}\n");
     var p = store_path();
     write_file(p[0..p.len], b[0..b.len]);
+    folder_save();
 }
 

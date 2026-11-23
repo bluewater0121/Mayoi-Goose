@@ -221,5 +221,8 @@ fn set_root(path: const u8[:]) {
     while j < path.len { state::root_name.push(path[j]); j++; }
     if state::root_name.len == 0 { state::root_name.append("winhx"); }
     tree::rebuild();
+    prefs::store_load();
+    prefs::folder_load();
+    apply_settings();
 }
 

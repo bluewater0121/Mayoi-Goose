@@ -3,6 +3,7 @@
 namespace menu;
 
 import ui.win;
+import os;
 import ui.theme;
 import app.state;
 import app.layout;
@@ -95,7 +96,24 @@ fn run(i: i64) {
     if eq(id, "file.settingsJSON") { prefs::open_at(0); win::invalidate(); return; }
     if eq(id, "file.keybindings") { prefs::open_at(10); win::invalidate(); return; }
     if eq(id, "file.keybindingsJSON") { prefs::open_at(10); win::invalidate(); return; }
-    if eq(id, "file.folderSettings") { prefs::open_at(0); win::invalidate(); return; }
+    if eq(id, "file.folderSettings") {
+        if state::root.len == 0 { app::set_status("先打开一个文件夹"); return; }
+        var dir: u8[>..] = [];
+        dir.append(state::root);
+        dir.append("/.mayoi");
+        make_dir(dir[0..dir.len]);
+        var p: u8[>..] = [];
+        p.append(state::root);
+        p.append("/.mayoi/settings.json");
+        if !file_exists(p[0..p.len]) {
+            var empty: u8[>..] = [];
+            empty.append("{\n}\n");
+            write_file(p[0..p.len], empty[0..empty.len]);
+        }
+        app::open_path(p[0..p.len]);
+        win::invalidate();
+        return;
+    }
     if eq(id, "plugin.manage") { prefs::open_at(8); win::invalidate(); return; }
     // edit
     if eq(id, "edit.undo") { text::undo_edit(); syntax::invalidate(); win::invalidate(); return; }
