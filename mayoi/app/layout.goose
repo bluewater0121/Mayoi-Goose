@@ -63,6 +63,7 @@ fn apply_settings() {
         if v.len == 5 && v[0] == 'l' { light = true; }
     }
     if light { theme::set_light(); } else { theme::set_dark(); }
+    state::wrap_enabled = prefs::bool_of("wordWrap");
     fonts();
 }
 

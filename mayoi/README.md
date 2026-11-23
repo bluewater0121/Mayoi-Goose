@@ -94,6 +94,7 @@ cd C:\work\prj\winhx\mayoi
 - 最小化恢复：`WM_SIZE` / `WM_ACTIVATE` / `WM_SHOWWINDOW` / `WM_DPICHANGED` 在窗口过程里被 `PostMessage` 转发进 goose 队列（`0x8002`…`0x8005`），恢复时 `SWP_FRAMECHANGED` + 重建 DIB + 重排 + 重绘，修复「最小化再恢复一片黑」。
 - Markdown 预览：`markdownMode` 决定打开 `.md` 的方式——源代码（默认）/ 实时预览（编辑器 54% + 预览 46%）/ 阅读视图（整块预览）；菜单「查看 › 切换预览 / 切换实时预览 / 在侧边打开预览」与 Ctrl+Shift+V 均可切换。预览逐行解析 `#` 标题（1 级用标题字体）、`> ` 引用（左侧 accent 竖条）、`- * +` 与 `1.` 列表（accent 圆点、缩进）、`- [ ]` / `- [x]` 任务勾选框、``` 围栏代码块（surface 底纹）、`|` 表格（网格线 + 表头底纹 + 按内容分配列宽）、`---` 分割线，普通段落按词折行、超长 token 在字符处硬断并避开 UTF-8 中界；`plain()` 去掉 `**` `*` `` ` `` 与 `[text](url)`，反斜杠只转义 Markdown 标点，Windows 路径不被吃掉；预览可独立滚动（`docs/preview.png`、`preview-side.png`）。
 - 设置生效：`appearance` 切换深/浅两套调色板，`fontSize` / `fontWeight` / `lineHeight` / `fontFamily` 重新生成代码字体与行高（`monospace` 在 GDI 上回落 Consolas），改设置即时生效并落盘。
+- 自动换行：`wordWrap` 打开后编辑器按可视宽度折行（优先在空格断，长 token 在字符处断并跳过 UTF-8 续字节），续行不再画行号、光标落在正确的一段；菜单「查看 › 自动换行」写入设置并立即生效，「切换标签页的自动换行」（Alt+Z）只改当前窗口（`docs/wordwrap.png`）。
 - 代码区右侧 overlay 滚动条：仅在内容超出一屏时出现，4px 圆角，位置随滚动比例。
 - 下方面板：四个标签各自有内容——问题「未发现问题。」、输出「输出通道暂无内容。」、终端（`PS ...>` 提示与输出）、调试「调试会话尚未启动，按 F5 开始调试。」。
 - 标签条：42px 高，标签 42+label+42，活动标签 2px accent 顶边与 1px 右边框，图标 16px、关闭按钮 14px、脏标记。
@@ -125,7 +126,6 @@ cd C:\work\prj\winhx\mayoi
 ## 未完成
 
 - 下方面板的问题/输出/调试页只有空态文字，终端是回显而非真正的 PTY（`build.ps1` 之类命令只在外部终端跑）。
-- 自动换行（`wordWrap` / 标签页 Alt+Z）尚未反作用到编辑器绘制，长行仍是横向滚动。
 - Vim 还差视觉模式的 `J` / `>` / `<` / 缩进等命令。
 - 命令面板/全局查找/快速打开有浮层但结果列表与交互未完整跑通。
 - 预览不解析行内 `**加粗**` / `` `code` `` 的差异化样式（只去掉标记），也不画 mermaid、LaTeX、图片与 `![alt](url)`。

@@ -71,6 +71,7 @@ var query_sel: i32 = 0;
 var overlay_sel: i32 = 0;
 var overlay_top: i32 = 0;
 var panel_tab: i32 = 0;
+var wrap_enabled: bool = false;   // wordWrap setting (or Alt+Z for this window)
 var preview_open: bool = false;   // the markdown preview shows
 var preview_side: bool = false;   // beside the editor rather than in its place
 var preview_live: bool = false;   // updates as the text changes (it always does)

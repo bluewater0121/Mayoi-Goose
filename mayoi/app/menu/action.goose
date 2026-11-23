@@ -130,6 +130,25 @@ fn run(i: i64) {
     if eq(id, "view.markdownOpen.live") { state::preview_open = true; state::preview_side = false; win::invalidate(); return; }
     if eq(id, "view.markdownOpen.reading") { state::preview_open = true; state::preview_side = false; win::invalidate(); return; }
     if eq(id, "view.markdownOpen.source") { state::preview_open = false; win::invalidate(); return; }
+    if eq(id, "view.wordWrap") {
+        let i = prefs::index_of("wordWrap");
+        if i >= 0 {
+            let on = prefs::bool_of("wordWrap");
+            let v: const u8[:] = if on { "false" } else { "true" };
+            prefs::set(i, v);
+            prefs::store_save();
+            app::apply_settings();
+            app::set_status(if on { "自动换行已关闭" } else { "自动换行已打开" });
+        }
+        win::invalidate();
+        return;
+    }
+    if eq(id, "view.wordWrapTab") {
+        state::wrap_enabled = !state::wrap_enabled;
+        app::set_status(if state::wrap_enabled { "本标签页：自动换行" } else { "本标签页：不换行" });
+        win::invalidate();
+        return;
+    }
     if eq(id, "view.vim") {
         let i = prefs::index_of("vim");
         if i >= 0 {

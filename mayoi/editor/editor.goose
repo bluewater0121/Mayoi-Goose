@@ -53,6 +53,109 @@ fn draw_segment(i: i32, a: i64, b: i64, k: i64, tx: i32, row_y: i32, col0: i32) 
     }
 }
 
+fn u8_len(i: i32, p: i64) -> i64 {
+    let c = state::arena[state::docs[i].off + p];
+    if (c & 0xF8) == 0xF0 { return 4; }
+    if (c & 0xF0) == 0xE0 { return 3; }
+    if (c & 0xE0) == 0xC0 { return 2; }
+    return 1;
+}
+
+fn u8_cells(i: i32, p: i64) -> i32 {
+    let c = state::arena[state::docs[i].off + p];
+    if c == '\t' { return 4; }
+    if (c & 0xF8) == 0xF0 { return 2; }
+    if (c & 0xF0) == 0xE0 { return 2; }
+    return 1;
+}
+
+// paint_wrapped lays a logical line out over as many rows as it needs, breaking
+// at spaces where it can and at the character that overflows where it cannot.
+fn paint_wrapped(x0: i32, y0: i32, w: i32, h: i32) {
+    let p = theme::pal;
+    let d .= state::docs[state::cur];
+    let total = text::nlines();
+    let tx = x0 + state::px(102);
+    let gx_right = x0 + state::px(56);
+    let right = x0 + w - state::px(14);
+    var maxcells = ((right - tx) * 9 / 10) / state::cell_w - 2;
+    if maxcells < 8 { maxcells = 8; }
+    let lh = state::line_h;
+    let caret_line, caret_col = text::line_col(d.sel_b);
+    var vis: i32 = 0;
+    var line = d.scroll;
+    if line < 0 { line = 0; }
+    while line < total {
+        let ls = text::line_start(line);
+        let le = text::line_end(line);
+        var seg = ls;
+        var cells: i32 = 0;
+        var last_space: i64 = -1;
+        var i = ls;
+        var col0: i32 = 0;
+        var first = true;
+        while i < le {
+            let y = y0 + vis * lh;
+            if y >= y0 + h { return; }
+            let cwid = u8_cells(state::cur, i);
+            if cells + cwid > maxcells && i > seg {
+                var cut = i;
+                if last_space > seg { cut = last_space; }
+                while cut > seg && (state::arena[d.off + cut] & 0xC0) == 0x80 { cut--; }
+                draw_wrap_row(x0, y0, w, h, line, vis, seg, cut, col0, cells, first, caret_line, caret_col, tx, gx_right, lh);
+                vis++;
+                var adv = cells;
+                if cut == last_space { cut++; adv++; }
+                seg = cut;
+                i = cut;
+                col0 = col0 + adv;
+                cells = 0;
+                last_space = -1;
+                first = false;
+                continue;
+            }
+            if state::arena[d.off + i] == ' ' { last_space = i; }
+            cells = cells + cwid;
+            i = i + u8_len(state::cur, i);
+        }
+        draw_wrap_row(x0, y0, w, h, line, vis, seg, le, col0, cells, first, caret_line, caret_col, tx, gx_right, lh);
+        vis++;
+        line++;
+        if y0 + vis * lh >= y0 + h { return; }
+    }
+}
+
+fn draw_wrap_row(x0: i32, y0: i32, w: i32, h: i32, line: i32, vis: i32, a: i64, b: i64,
+                 col0: i32, cells: i32, first: bool, caret_line: i32, caret_col: i64,
+                 tx: i32, gx_right: i32, lh: i32) {
+    let p = theme::pal;
+    let d .= state::docs[state::cur];
+    let y = y0 + vis * lh;
+    var end = b;
+    while end > a && state::arena[d.off + end - 1] == ' ' { end--; }
+    if y + lh > y0 + h { return; }
+    if line == caret_line {
+        win::fill(x0 + state::px(101), y, x0 + w - x0 - state::px(101), lh, p.line);
+    }
+    if first {
+        var num: u8[>..] = [];
+        format(num, line + 1);
+        let nw = num.len as i32 * state::cell_w;
+        win::text_at(state::f_code, gx_right - nw, y + (lh - win::th(state::f_code)) / 2, num,
+                     if line == caret_line { p.gutter_now } else { p.gutter });
+    }
+    if end > a {
+        win::text_at(state::f_code, tx, y + (lh - win::th(state::f_code)) / 2,
+                     state::arena[d.off + a .. d.off + end], p.text);
+    }
+    if line == caret_line && caret_col >= col0 && caret_col <= col0 + cells {
+        let cx = tx + (caret_col - col0) as i32 * state::cell_w;
+        if state::focus == 0 && state::blink {
+            win::fill(cx, y + state::px(2), state::px(2), lh - state::px(4), p.text);
+        }
+    }
+}
+
 fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     let p = theme::pal;
     win::fill(x0, y0, w, h, p.editor);
@@ -61,6 +164,7 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     state::ed_top = y0;
     state::ed_bot = y0 + h;
     if state::docs.len == 0 || state::cur < 0 { welcome(x0, y0, w, h); return; }
+    if state::wrap_enabled { paint_wrapped(x0, y0, w, h); return; }
     let d .= state::docs[state::cur];
     let total = text::nlines();
     let tx = x0 + state::px(102);
