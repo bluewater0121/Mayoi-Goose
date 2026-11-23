@@ -122,6 +122,15 @@ extern fn gs_class_proc() -> i64;
 extern fn gs_path_join(a: const u8&, alen: i64, b: const u8&, blen: i64, out: u8&, cap: i64) -> i64;
 extern fn gs_setdpi() -> i32;
 extern fn gs_icon_draw(hdc: u64, idx: i32, x: i32, y: i32, size: i32, color: u32) -> i64;
+extern fn gs_img_load(path: const u8&, len: i64) -> u64;
+extern fn gs_img_w(img: u64) -> i64;
+extern fn gs_img_h(img: u64) -> i64;
+extern fn gs_img_draw(img: u64, hdc: u64, x: i64, y: i64, w: i64, h: i64);
+extern fn gs_img_free(img: u64);
+
+fn draw_image(img: u64, x: i32, y: i32, w: i32, h: i32) {
+    gs_img_draw(img, dc, x + dx, y + dy, w, h);
+}
 
 fn setdpi() -> i32 { return gs_setdpi(); }
 

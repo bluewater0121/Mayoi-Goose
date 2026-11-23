@@ -200,6 +200,69 @@ fn draw_wrap_row(x0: i32, y0: i32, w: i32, h: i32, line: i32, vis: i32, a: i64, 
     }
 }
 
+var img_path: u8[>..] = [];
+var img_handle: u64 = 0;
+
+fn lower(c: u8) -> u8 { if c >= 'A' && c <= 'Z' { return c + 32; } return c; }
+
+fn is_image(path: const u8[:]) -> bool {
+    var dot: i64 = -1;
+    var i: i64 = 0;
+    while i < path.len {
+        if path[i] == '.' { dot = i; }
+        if path[i] == '/' || path[i] == '\\' { dot = -1; }
+        i++;
+    }
+    if dot < 0 || dot + 1 >= path.len { return false; }
+    let e = path[dot + 1..path.len];
+    if e.len == 3 && lower(e[0]) == 'p' && lower(e[1]) == 'n' && lower(e[2]) == 'g' { return true; }
+    if e.len == 3 && lower(e[0]) == 'j' && lower(e[1]) == 'p' && lower(e[2]) == 'g' { return true; }
+    if e.len == 4 && lower(e[0]) == 'j' && lower(e[1]) == 'p' && lower(e[2]) == 'e' && lower(e[3]) == 'g' { return true; }
+    if e.len == 3 && lower(e[0]) == 'g' && lower(e[1]) == 'i' && lower(e[2]) == 'f' { return true; }
+    if e.len == 3 && lower(e[0]) == 'b' && lower(e[1]) == 'm' && lower(e[2]) == 'p' { return true; }
+    if e.len == 4 && lower(e[0]) == 'w' && lower(e[1]) == 'e' && lower(e[2]) == 'b' && lower(e[3]) == 'p' { return true; }
+    if e.len == 3 && lower(e[0]) == 'i' && lower(e[1]) == 'c' && lower(e[2]) == 'o' { return true; }
+    return false;
+}
+
+fn same_path(a: const u8[:], b: const u8[:]) -> bool {
+    if a.len != b.len { return false; }
+    var i: i64 = 0;
+    while i < a.len { if a[i] != b[i] { return false; } i++; }
+    return true;
+}
+
+fn paint_image(path: const u8[:], x0: i32, y0: i32, w: i32, h: i32, name: const u8[:]) {
+    let p = theme::pal;
+    if !same_path(img_path[0..img_path.len], path) {
+        if img_handle != 0 { win::gs_img_free(img_handle); img_handle = 0; }
+        img_path.resize(0);
+        img_path.append(path);
+        img_handle = win::gs_img_load(path[0], path.len as i64);
+    }
+    win::text_at(state::f_ui, x0 + state::px(16), y0 + state::px(8), name, p.muted);
+    if img_handle == 0 {
+        var msg: u8[>..] = [];
+        msg.append("无法显示这张图片");
+        win::text_at(state::f_ui, x0 + state::px(16), y0 + state::px(32), msg, p.muted);
+        return;
+    }
+    let iw = win::gs_img_w(img_handle) as i32;
+    let ih = win::gs_img_h(img_handle) as i32;
+    if iw <= 0 || ih <= 0 { return; }
+    let maxw = w - state::px(48);
+    let maxh = h - state::px(60);
+    var dw = iw;
+    var dh = ih;
+    if dw > maxw { dh = dh * maxw / dw; dw = maxw; }
+    if dh > maxh { dw = dw * maxh / dh; dh = maxh; }
+    if dw < 1 { dw = 1; }
+    if dh < 1 { dh = 1; }
+    let ix = x0 + (w - dw) / 2;
+    let iy = y0 + state::px(30) + (h - state::px(34) - dh) / 2;
+    win::draw_image(img_handle, ix, iy, dw, dh);
+}
+
 fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     let p = theme::pal;
     win::fill(x0, y0, w, h, p.editor);
@@ -210,6 +273,10 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     if state::docs.len == 0 || state::cur < 0 { welcome(x0, y0, w, h); return; }
     if state::wrap_enabled { paint_wrapped(x0, y0, w, h); return; }
     let d .= state::docs[state::cur];
+    if is_image(d.path) {
+        paint_image(d.path[0..d.path.len], x0, y0, w, h, d.name[0..d.name.len]);
+        return;
+    }
     let total = text::nlines();
     let tx = x0 + state::px(102);
     let gx_right = x0 + state::px(56);

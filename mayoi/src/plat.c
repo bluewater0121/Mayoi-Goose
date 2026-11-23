@@ -372,3 +372,87 @@ uint64_t gsp8(uint8_t *p) { return (uint64_t)p; }
 uint64_t gsp32(uint32_t *p) { return (uint64_t)p; }
 uint64_t gsp64(uint64_t *p) { return (uint64_t)p; }
 
+// --- images -----------------------------------------------------------------
+// GDI+ is loaded by name so the build keeps its plain gdi32.lib link line.
+typedef struct { uint32_t ver; void *cb; int32_t suppress_bg; int32_t suppress_codecs; } GpStartupInput;
+typedef int32_t (WINAPI *GpStartupFn)(uintptr_t *, GpStartupInput *, void *);
+typedef int32_t (WINAPI *GpBitmapFromFileFn)(const WCHAR *, void **);
+typedef int32_t (WINAPI *GpImageWidthFn)(void *, uint32_t *);
+typedef int32_t (WINAPI *GpImageHeightFn)(void *, uint32_t *);
+typedef int32_t (WINAPI *GpFromHdcFn)(HDC, void **);
+typedef int32_t (WINAPI *GpDrawRectFn)(void *, void *, int32_t, int32_t, int32_t, int32_t);
+typedef int32_t (WINAPI *GpDeleteGraphicsFn)(void *);
+typedef int32_t (WINAPI *GpDisposeImageFn)(void *);
+
+static HMODULE gp_mod;
+static uintptr_t gp_token;
+static GpBitmapFromFileFn gp_bitmap_from_file;
+static GpImageWidthFn gp_image_width;
+static GpImageHeightFn gp_image_height;
+static GpFromHdcFn gp_from_hdc;
+static GpDrawRectFn gp_draw_rect;
+static GpDeleteGraphicsFn gp_delete_graphics;
+static GpDisposeImageFn gp_dispose_image;
+
+static int gp_ready(void) {
+    if (gp_mod) return 1;
+    gp_mod = LoadLibraryW(L"gdiplus.dll");
+    if (!gp_mod) return 0;
+    GpStartupFn startup = (GpStartupFn)GetProcAddress(gp_mod, "GdiplusStartup");
+    gp_bitmap_from_file = (GpBitmapFromFileFn)GetProcAddress(gp_mod, "GdipCreateBitmapFromFile");
+    gp_image_width = (GpImageWidthFn)GetProcAddress(gp_mod, "GdipGetImageWidth");
+    gp_image_height = (GpImageHeightFn)GetProcAddress(gp_mod, "GdipGetImageHeight");
+    gp_from_hdc = (GpFromHdcFn)GetProcAddress(gp_mod, "GdipCreateFromHDC");
+    gp_draw_rect = (GpDrawRectFn)GetProcAddress(gp_mod, "GdipDrawImageRectI");
+    gp_delete_graphics = (GpDeleteGraphicsFn)GetProcAddress(gp_mod, "GdipDeleteGraphics");
+    gp_dispose_image = (GpDisposeImageFn)GetProcAddress(gp_mod, "GdipDisposeImage");
+    if (!startup || !gp_bitmap_from_file) { return 0; }
+    GpStartupInput in;
+    in.ver = 1;
+    in.cb = NULL;
+    in.suppress_bg = 0;
+    in.suppress_codecs = 0;
+    if (startup(&gp_token, &in, NULL) != 0) return 0;
+    return 1;
+}
+
+void *gs_img_load(const uint8_t *path, int64_t len) {
+    static WCHAR wpath[1024];
+    if (len <= 0 || len > 1000 || !gp_ready()) return NULL;
+    utf8_to_wide((const char *)path, (size_t)len, wpath, 1024);
+    void *img = NULL;
+    if (gp_bitmap_from_file(wpath, &img) != 0) return NULL;
+    return img;
+}
+
+void gs_img_size(void *img, int64_t *w, int64_t *h) {    uint32_t iw = 0, ih = 0;
+    if (!img) return;
+    if (gp_image_width) gp_image_width(img, &iw);
+    if (gp_image_height) gp_image_height(img, &ih);
+    if (w) *w = (int64_t)iw;
+    if (h) *h = (int64_t)ih;
+}
+
+int64_t gs_img_w(void *img) {
+    uint32_t iw = 0;
+    if (img && gp_image_width) gp_image_width(img, &iw);
+    return (int64_t)iw;
+}
+
+int64_t gs_img_h(void *img) {
+    uint32_t ih = 0;
+    if (img && gp_image_height) gp_image_height(img, &ih);
+    return (int64_t)ih;
+}
+
+void gs_img_draw(void *img, void *hdcv, int64_t x, int64_t y, int64_t w, int64_t h) {
+    void *g = NULL;
+    if (!img || !gp_from_hdc || gp_from_hdc((HDC)hdcv, &g) != 0) return;
+    gp_draw_rect(g, img, (int32_t)x, (int32_t)y, (int32_t)w, (int32_t)h);
+    if (gp_delete_graphics) gp_delete_graphics(g);
+}
+
+void gs_img_free(void *img) {
+    if (img && gp_dispose_image) gp_dispose_image(img);
+}
+

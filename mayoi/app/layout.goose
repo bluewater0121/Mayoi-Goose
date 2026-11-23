@@ -63,6 +63,11 @@ fn apply_settings() {
         if v.len == 5 && v[0] == 'l' { light = true; }
     }
     if light { theme::set_light(); } else { theme::set_dark(); }
+    let ti = prefs::index_of("theme");
+    if ti >= 0 {
+        let tv = prefs::value(ti);
+        if tv.len > 0 { theme::set_named(tv[0..tv.len]); }
+    }
     state::wrap_enabled = prefs::bool_of("wordWrap");
     fonts();
 }

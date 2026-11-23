@@ -29,6 +29,11 @@ fn eq(a: const u8[:], b: const u8[:]) -> bool {
 
 fn relay(cmd: const u8[:]) -> bool { return eq(cmd, "file.save"); }
 
+fn save_theme(name: const u8[:]) {
+    let i = prefs::index_of("theme");
+    if i >= 0 { prefs::set(i, name); prefs::store_save(); }
+}
+
 // run_label runs the item whose label the command palette shows, the way
 // picking a command from the list runs it.
 fn run_label(label: const u8[:]) -> bool {
@@ -118,7 +123,17 @@ fn run(i: i64) {
     if eq(id, "view.appearance.light") { theme::set_light(); win::invalidate(); return; }
     if eq(id, "view.appearance.dark") { theme::set_dark(); win::invalidate(); return; }
     if eq(id, "view.appearance.system") { if theme::dark { theme::set_dark(); } else { theme::set_light(); } win::invalidate(); return; }
-    if eq(id, "view.theme.mayoi") { theme::set_dark(); win::invalidate(); return; }
+    if eq(id, "view.theme.mayoi") { theme::set_named("mayoi"); save_theme(""); win::invalidate(); return; }
+    if eq(id, "view.theme.matrix") { theme::set_named("matrix"); save_theme("matrix"); win::invalidate(); return; }
+    if eq(id, "view.theme.claude") { theme::set_named("claude"); save_theme("claude"); win::invalidate(); return; }
+    if eq(id, "view.theme.qoder") { theme::set_named("qoder"); save_theme("qoder"); win::invalidate(); return; }
+    if eq(id, "view.theme.grokbot") { theme::set_named("grokbot"); save_theme("grokbot"); win::invalidate(); return; }
+    if eq(id, "view.theme.cursor") { theme::set_named("cursor"); save_theme("cursor"); win::invalidate(); return; }
+    if eq(id, "view.theme.purplegold") { theme::set_named("purplegold"); save_theme("purplegold"); win::invalidate(); return; }
+    if eq(id, "view.theme.pumpkin") { theme::set_named("pumpkin"); save_theme("pumpkin"); win::invalidate(); return; }
+    if eq(id, "view.theme.witchsbrew") { theme::set_named("witchsbrew"); save_theme("witchsbrew"); win::invalidate(); return; }
+    if eq(id, "view.theme.bloodmoon") { theme::set_named("bloodmoon"); save_theme("bloodmoon"); win::invalidate(); return; }
+    if eq(id, "view.theme.gtavi") { theme::set_named("gtavi"); save_theme("gtavi"); win::invalidate(); return; }
     if eq(id, "view.togglePreview") {
         state::preview_open = !state::preview_open;
         state::preview_side = false;
