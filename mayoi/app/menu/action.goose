@@ -12,6 +12,7 @@ import app.sidebar;
 import editor.text;
 import editor.syntax;
 import explore.tree;
+import app.prefs.model;
 import .model;
 
 fn eq(a: const u8[:], b: const u8[:]) -> bool {
@@ -68,6 +69,12 @@ fn run(i: i64) {
     if eq(id, "file.close") { input::close_tab(state::cur); return; }
     if eq(id, "file.closeFolder") { close_folder(); return; }
     if eq(id, "file.closeProject") { close_folder(); return; }
+    if eq(id, "file.settings") { prefs::open_at(0); win::invalidate(); return; }
+    if eq(id, "file.settingsJSON") { prefs::open_at(0); win::invalidate(); return; }
+    if eq(id, "file.keybindings") { prefs::open_at(10); win::invalidate(); return; }
+    if eq(id, "file.keybindingsJSON") { prefs::open_at(10); win::invalidate(); return; }
+    if eq(id, "file.folderSettings") { prefs::open_at(0); win::invalidate(); return; }
+    if eq(id, "plugin.manage") { prefs::open_at(8); win::invalidate(); return; }
     // edit
     if eq(id, "edit.undo") { text::undo_edit(); syntax::invalidate(); win::invalidate(); return; }
     if eq(id, "edit.redo") { text::redo_edit(); syntax::invalidate(); win::invalidate(); return; }

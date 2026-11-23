@@ -16,7 +16,8 @@ import app.tabs;
 import app.status;
 import editor.editor;
 import app.menu.paint;
-import app.ctxmenu;// --- frame -------------------------------------------------------------------
+import app.ctxmenu;
+import app.prefs.paint;// --- frame -------------------------------------------------------------------
 
 fn paint() {
     state::hits.resize(0);
@@ -51,6 +52,7 @@ fn paint() {
     if state::overlay != 0 { paint_overlay(); }
     menu::paint();
     chrome::ctx_paint();
+    prefs::paint();
 }
 
 fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {

@@ -41,6 +41,10 @@ fn fonts() {
     state::f_tree = win::font(state::px(13), 400, "Segoe UI");
     state::f_code = win::fontw(state::px(16), state::px(9), 400, "Consolas");
     state::f_title = win::font(state::px(30), 600, "Segoe UI");
+    state::f_prefs = win::font(state::px(12), 400, "Segoe UI");
+    state::f_prefs_b = win::font(state::px(13), 600, "Segoe UI");
+    state::f_prefs_k = win::fontw(state::px(11), state::px(6), 400, "Consolas");
+    state::f_prefs_h = win::font(state::px(15), 600, "Segoe UI");
     state::f_code_small = win::font(state::px(14), 400, "Consolas");
     state::f_cjk = win::font(state::px(15), 400, "Microsoft YaHei UI");
     state::cell_w = win::measure(state::f_code, "00000000000000000000") / 20;

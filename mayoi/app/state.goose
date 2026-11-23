@@ -48,6 +48,10 @@ var f_cjk: u64 = 0;
 var f_code: u64 = 0;
 var f_code_small: u64 = 0;
 var f_title: u64 = 0;
+var f_prefs: u64 = 0;
+var f_prefs_b: u64 = 0;
+var f_prefs_k: u64 = 0;
+var f_prefs_h: u64 = 0;
 var fs_small: i32 = 0;
 var fs_code: i32 = 0;
 var ed_top: i32 = 0;      // top of the text area
@@ -128,6 +132,10 @@ let HIT_CTX_ROW = 24; let HIT_CTX = 25; let HIT_TREE_SCROLL = 26;
 let HIT_SEARCH_OPT = 27; let HIT_SEARCH_DETAILS = 28; let HIT_SEARCH_REFRESH = 29;
 let HIT_SEARCH_CLEAR = 30; let HIT_SEARCH_REPLACE_ALL = 31; let HIT_SEARCH_COLLAPSE = 32;
 let HIT_SEARCH_FIELD = 33; let HIT_SCM_INIT = 34; let HIT_SCM_COMMIT = 35;
+let HIT_PREFS_WIN = 36; let HIT_PREFS_CLOSE = 37; let HIT_PREFS_NAV = 38;
+let HIT_PREFS_SEARCH = 39; let HIT_PREFS_TOGGLE = 40; let HIT_PREFS_STEP = 41;
+let HIT_PREFS_ENUM = 42; let HIT_PREFS_OPT = 43; let HIT_PREFS_TEXT = 44;
+let HIT_PREFS_RESET = 45;
 
 fn hit(kind: i32, x: i32, y: i32, w: i32, h: i32, arg: i64) -> Hit {
     return Hit { x, y, w, h, kind, arg };

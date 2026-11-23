@@ -19,11 +19,18 @@ import app.layout;
 import app.view;
 import app.overlay;
 import app.ctxmenu;
+import app.prefs.input;
+import app.prefs.model;
 
 
 fn mouse_down(x: i32, y: i32, button: i32) {
     state::mx = x;
     state::my = y;
+    if prefs::open {
+        prefs::click(x, y);
+        win::invalidate();
+        return;
+    }
     if state::ren_active {
         input::commit_rename();
         win::invalidate();
@@ -143,6 +150,10 @@ fn mouse_up(x: i32, y: i32) {
 fn mouse_move(x: i32, y: i32) {
     state::mx = x;
     state::my = y;
+    if prefs::open {
+        prefs::hover_at(x, y);
+        return;
+    }
     if chrome::ctx_open {
         chrome::ctx_hover(x, y);
         return;

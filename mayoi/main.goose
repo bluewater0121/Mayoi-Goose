@@ -22,6 +22,8 @@ import app.overlay;
 import app.input;
 import app.menu.input;
 import app.menu.paint;
+import app.prefs.input;
+import app.prefs.model;
 import ui.icons;
 
 fn main() {
@@ -39,6 +41,7 @@ fn main() {
     win::get_window_rect(win::hwnd, wrc);
     win::resize_frame(rc.r, rc.b);
     app::fonts();
+    prefs::init();
 
     let argv = args();
     if argv.len > 1 {
@@ -145,6 +148,7 @@ fn main() {
             continue;
         }
         if msg.m == 0x0102 {                            // WM_CHAR
+            if prefs::open { prefs::typed(msg.wp as u16); win::invalidate(); continue; }
             if state::menu_open { continue; }
             if state::ren_active {
                 input::rename_char(msg.wp as u16);
@@ -201,6 +205,7 @@ fn main() {
         if msg.m == 0x020A {                            // WM_MOUSEWHEEL
             let delta = ((msg.wp >> 16) & 0xFFFF) as i32;
             let signed = if delta > 0x7FFF { delta - 0x10000 } else { delta };
+            if prefs::open { prefs::wheel(signed / 120); win::invalidate(); continue; }
             if menu::wheel(signed / 120) { continue; }
             if input::wheel_sidebar(signed / 120) { continue; }
             input::wheel(signed / 120);

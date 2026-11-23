@@ -19,9 +19,17 @@ import app.layout;
 import app.view;
 import app.overlay;
 import app.ctxmenu;
+import app.prefs.input;
+import app.prefs.model;
 
 
 fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
+    if prefs::open { return prefs::key(vk, ctrl, shift, alt); }
+    if ctrl && vk == input::VK_COMMA {
+        prefs::open_at(0);
+        win::invalidate();
+        return true;
+    }
     if state::ren_active {
         if vk == input::VK_RET { input::commit_rename(); win::invalidate(); return true; }
         if vk == input::VK_ESC { input::cancel_rename(); win::invalidate(); return true; }
