@@ -74,7 +74,7 @@ fn search_body(top: i32) {
     state::add_hit(state::HIT_SEARCH, 0, top, w, state::H - state::status_h - top, 0);
     box(bx, fy, bw, bh, state::search_field == 0);
     state::add_hit(state::HIT_SEARCH_FIELD, bx, fy, bw - state::px(90), bh, 0);
-    field_text(bx, fy, bw - state::px(90), bh, state::search_q, "搜索",
+    field_text(bx, fy, bw - state::px(90), bh, state::search_q, i18n::t("搜索"),
         state::search_field == 0 && state::blink);
     opt_cell(71, bx, fy, bh, bx + bw - state::px(88), state::search_case);
     state::add_hit(state::HIT_SEARCH_OPT, bx + bw - state::px(88), fy, state::px(22), bh, 1);
@@ -88,7 +88,7 @@ fn search_body(top: i32) {
         icon_at(8, state::px(20), fy + state::px(6), state::px(13), p.muted);
         box(bx, fy, bw, bh, state::search_field == 1);
         state::add_hit(state::HIT_SEARCH_FIELD, bx, fy, bw - state::px(34), bh, 1);
-        field_text(bx, fy, bw - state::px(34), bh, state::search_rep, "替换",
+        field_text(bx, fy, bw - state::px(34), bh, state::search_rep, i18n::t("替换"),
             state::search_field == 1 && state::blink);
         icon_at(74, bx + bw - state::px(30), fy + (bh - state::px(15)) / 2, state::px(15), p.muted);
         state::add_hit(state::HIT_SEARCH_REPLACE_ALL, bx + bw - state::px(34), fy, state::px(34), bh, 0);
@@ -129,7 +129,7 @@ fn search_body(top: i32) {
     fy = fy + state::px(26);
     hint_row(state::px(42), fy, "↑↓", i18n::t("转到上一个结果"));
     fy = fy + state::px(26);
-    hint_row(state::px(42), fy, "Ctrl+Shift+H", "替换");
+    hint_row(state::px(42), fy, "Ctrl+Shift+H", i18n::t("替换"));
     fy = fy + state::px(30);
     if state::search_q.len > 0 {
         var head: u8[>..] = [];

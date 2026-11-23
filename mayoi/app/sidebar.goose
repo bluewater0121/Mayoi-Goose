@@ -3,6 +3,7 @@ namespace chrome;
 
 import std;
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 import editor.text;
@@ -31,7 +32,7 @@ fn sidebar() {
         explorer_body(row2 + state::px(30));
     } else if state::view == 2 {
         // the search view's title sits at the left, its actions at the right
-        ch(state::f_ui, state::px(163), row1 + state::px(21), "搜索", p.text);
+        ch(state::f_ui, state::px(163), row1 + state::px(21), i18n::t("搜索"), p.text);
         let iy = row1 + state::px(13);
         icon_at(12, w - state::px(49), iy, state::px(15), p.muted);
         state::add_hit(state::HIT_SEARCH_CLEAR, w - state::px(55), row1 + state::px(4), state::px(26), state::px(30), 0);
