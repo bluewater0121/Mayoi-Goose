@@ -43,9 +43,9 @@ fn main() {
     var wrc: win::Rect = win::Rect { 0, 0, 0, 0 };
     win::get_window_rect(win::hwnd, wrc);
     win::resize_frame(rc.r, rc.b);
-    app::fonts();
     prefs::init();
     prefs::store_load();
+    app::apply_settings();
     plug::load();
 
     let argv = args();

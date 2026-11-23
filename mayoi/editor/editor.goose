@@ -149,6 +149,20 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
             win::fill(cx, cy + state::px(2), state::px(2), state::line_h - state::px(4), p.text);
         }
     }
+    // an overlay scrollbar at the right edge, only when the buffer runs past
+    // the view, thin and rounded like the reference's
+    if total > count && count > 0 {
+        let track = h - state::px(8);
+        var th = (track * count) / total;
+        if th < state::px(24) { th = state::px(24); }
+        let maxs = total - count;
+        var ty = y0 + state::px(4);
+        if maxs > 0 && d.scroll > 0 {
+            let s = if d.scroll > maxs { maxs } else { d.scroll };
+            ty = ty + ((track - th) * s) / maxs;
+        }
+        win::round_rect(x0 + w - state::px(7), ty, state::px(4), th, state::px(2), state::px(2), p.scrollbar);
+    }
     state::add_hit(state::HIT_CARET, x0, y0, w, h, 0);
 }
 

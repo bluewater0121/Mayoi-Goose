@@ -111,8 +111,17 @@ fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {
     rx = rx - state::px(30);
     chrome::icon_at(13, rx, y0 + (state::panel_head - ic) / 2, ic, p.muted);
 
-    // body: terminal output
+    // body follows the active tab: problems, output, terminal, debug
     var ty = y0 + state::panel_head + state::px(10);
+    if state::panel_tab != 2 {
+        var text: u8[>..] = [];
+        if state::panel_tab == 0 { text.append("未发现问题。"); }
+        else if state::panel_tab == 1 { text.append("输出通道暂无内容。"); }
+        else { text.append("调试会话尚未启动，按 F5 开始调试。"); }
+        win::text_at(state::f_ui, x0 + state::px(16), ty, text, p.muted);
+        state::add_hit(state::HIT_CARET, x0, y0 + state::panel_head, w, h - state::panel_head, 1);
+        return;
+    }
     var line = 0;
     var i2: i64 = 0;
     var start2: i64 = 0;

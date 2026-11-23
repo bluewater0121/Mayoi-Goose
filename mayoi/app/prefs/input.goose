@@ -6,6 +6,7 @@ import std;
 import ui.win;
 import ui.theme;
 import app.state;
+import app.layout;
 import app.input.vk;
 import app.plugins.model;
 import .model;
@@ -28,6 +29,7 @@ fn commit_edit() {
         }
         prefs::edit = -1;
         prefs::store_save();
+        app::apply_settings();
     }
 }
 
@@ -82,12 +84,14 @@ fn click(x: i32, y: i32) {
     }
     if k == state::HIT_PREFS_TOGGLE {
         prefs::toggle(h.arg as i32);
+        app::apply_settings();
         return;
     }
     if k == state::HIT_PREFS_STEP {
         let i = (h.arg / 4) as i32;
         let dir: i32 = if h.arg % 4 == 1 { 1 } else { -1 };
         prefs::step_num(i, dir);
+        app::apply_settings();
         return;
     }
     if k == state::HIT_PREFS_ENUM {
@@ -99,6 +103,7 @@ fn click(x: i32, y: i32) {
         let opt = (h.arg % 1000) as i32;
         if prefs::combo >= 0 {
             prefs::set(prefs::combo, prefs::opt_raw(prefs::combo, opt));
+            app::apply_settings();
         }
         prefs::combo = -1;
         return;
@@ -122,6 +127,7 @@ fn click(x: i32, y: i32) {
     }
     if k == state::HIT_PREFS_RESET {
         prefs::reset(h.arg as i32);
+        app::apply_settings();
         return;
     }
     if k == state::HIT_PREFS_PL_RELOAD {
@@ -246,3 +252,4 @@ fn hover_at(x: i32, y: i32) {
     }
     if prefs::hover != -1 { prefs::hover = -1; win::invalidate(); }
 }
+

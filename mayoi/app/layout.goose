@@ -9,6 +9,7 @@ import editor.text;
 import editor.syntax;
 import explore.tree;
 import app.draw;
+import app.prefs.model;
 import app.icons;
 import app.titlebar;
 import app.sidebar;
@@ -33,19 +34,79 @@ fn layout() {
     state::fs_code = state::px(15);
 }
 
+fn setting_num(key: const u8[:], def: i32) -> i32 {
+    let i = prefs::index_of(key);
+    if i < 0 { return def; }
+    let v = prefs::value(i);
+    if v.len == 0 { return def; }
+    var k: i64 = 0;
+    var n: i32 = 0;
+    var neg = false;
+    if v[0] == '-' { neg = true; k = 1; }
+    while k < v.len && v[k] >= '0' && v[k] <= '9' {
+        n = n * 10 + (v[k] - '0') as i32;
+        k++;
+    }
+    if neg { n = -n; }
+    if k == (if neg { 1 } else { 0 }) { return def; }
+    return n;
+}
+
+// apply_settings makes the window follow the settings that shape how it looks:
+// the light or dark palette, the code font, its size and line height.
+fn apply_settings() {
+    let a = prefs::index_of("appearance");
+    var light = false;
+    if a >= 0 {
+        let v = prefs::value(a);
+        if v.len == 1 && v[0] == '1' { light = true; }
+        if v.len == 5 && v[0] == 'l' { light = true; }
+    }
+    if light { theme::set_light(); } else { theme::set_dark(); }
+    fonts();
+}
+
 fn fonts() {
+    var fs = setting_num("fontSize", 13);
+    if fs >= 100 { fs = fs / 100; }
+    if fs < 9 { fs = 9; }
+    if fs > 28 { fs = 28; }
+    var lhm = setting_num("lineHeight", 150);
+    if lhm >= 10 { lhm = lhm; } else { lhm = 150; }
+    if lhm < 100 { lhm = 100; }
+    if lhm > 300 { lhm = 300; }
+    var weight = setting_num("fontWeight", 400);
+    if weight >= 1000 { weight = weight / 100; }
+    if weight < 100 { weight = 400; }
+    var fam: u8[>..] = [];
+    let fi = prefs::index_of("fontFamily");
+    if fi >= 0 {
+        let fv = prefs::value(fi);
+        var k: i64 = 0;
+        while k < fv.len {
+            let c = fv[k];
+            if c == ',' { break; }
+            if c != ' ' && c != '"' { fam.push(c); }
+            k++;
+        }
+    }
+    if fam.len == 0 { fam.append("Consolas"); }
+    // "monospace" is the generic name the settings use; GDI has no such family
+    if fam.len == 9 && fam[0] == 'm' && fam[1] == 'o' && fam[2] == 'n' { fam.resize(0); fam.append("Consolas"); }
+    state::line_h = (state::px(fs * 100) * lhm) / 10000 * 1;
+    if state::line_h < state::px(fs) { state::line_h = state::px(fs + 4); }
     state::f_ui = win::font(state::px(16), 400, "Segoe UI");
     state::f_ui_b = win::font(state::px(16), 600, "Segoe UI");
     state::f_small = win::font(state::px(15), 400, "Segoe UI");
     state::f_small_b = win::font(state::px(15), 600, "Segoe UI");
     state::f_tree = win::font(state::px(13), 400, "Segoe UI");
-    state::f_code = win::fontw(state::px(16), state::px(9), 400, "Consolas");
+    state::f_code = win::fontw(state::px(fs), state::px(9), weight, fam[0..fam.len]);
     state::f_title = win::font(state::px(30), 600, "Segoe UI");
     state::f_prefs = win::font(state::px(12), 400, "Segoe UI");
     state::f_prefs_b = win::font(state::px(13), 600, "Segoe UI");
     state::f_prefs_k = win::fontw(state::px(11), state::px(6), 400, "Consolas");
     state::f_prefs_h = win::font(state::px(15), 600, "Segoe UI");
-    state::f_code_small = win::font(state::px(14), 400, "Consolas");
+    state::f_code_small = win::font(state::px(fs - 2), 400, fam[0..fam.len]);
     state::f_cjk = win::font(state::px(15), 400, "Microsoft YaHei UI");
     state::cell_w = win::measure(state::f_code, "00000000000000000000") / 20;
 
@@ -71,12 +132,30 @@ fn open_path(path: const u8[:]) -> bool {
     // a Markdown file opens with the rendered preview beside the source, the
     // way the reference does, and keeps it in step with edits
     if is_markdown(path) {
-        state::preview_open = true;
-        state::preview_side = true;
-        state::preview_live = true;
+        let mode = md_mode();
+        if mode == 1 {
+            state::preview_open = true;
+            state::preview_side = true;
+            state::preview_live = true;
+        } else if mode == 2 {
+            state::preview_open = true;
+            state::preview_side = false;
+            state::preview_live = true;
+        }
         state::preview_scroll = 0;
     }
     return true;
+}
+
+// md_mode is the markdownMode setting: 0 source, 1 live preview, 2 reading.
+fn md_mode() -> i32 {
+    let i = prefs::index_of("markdownMode");
+    if i < 0 { return 0; }
+    let v = prefs::value(i);
+    if v.len == 1 && v[0] >= '0' && v[0] <= '2' { return (v[0] - '0') as i32; }
+    if v.len == 4 && v[0] == 'l' { return 1; }
+    if v.len == 7 && v[0] == 'r' { return 2; }
+    return 0;
 }
 
 fn is_markdown(path: const u8[:]) -> bool {

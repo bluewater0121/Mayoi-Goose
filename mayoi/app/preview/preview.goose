@@ -201,6 +201,8 @@ fn wrap(f: u64, x: i32, y: i32, w: i32, s: const u8[:], c: u32, lh: i32, top: i3
         if win::measure(f, s[start..i + 1]) > w {
             var cut = i;
             if last_space > start { cut = last_space; }
+            // never split a UTF-8 sequence in the middle
+            while cut > start && cut < s.len && (s[cut] & 0xC0) == 0x80 { cut--; }
             if cut > start {
                 if line_y >= top && line_y + lh <= bot {
                     win::text_at(f, x, line_y, s[start..cut], c);
