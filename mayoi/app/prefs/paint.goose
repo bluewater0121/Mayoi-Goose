@@ -269,7 +269,8 @@ fn page_head() {
     let by = hy + (hh - state::px(24)) / 2;
     pbox(bx, by, lw, state::px(24), false);
     pf(state::f_prefs, bx + state::px(8), by + (state::px(24) - win::th(state::f_prefs)) / 2,
-       if prefs::folder.len > 0 { "文件夹" } else { "用户" }, p.muted);
+       if prefs::scope == 1 { "文件夹" } else { "用户" }, p.muted);
+    state::add_hit(state::HIT_PREFS_SCOPE, bx, by, lw, state::px(24), 0);
     chrome::icon_at(8, bx + lw - state::px(16), by + state::px(7), state::px(10), p.muted);
     win::line(x, hy + hh, x + w - 1, hy + hh, p.border, 1);
     prefs::rows_y = hy + hh + state::px(6);

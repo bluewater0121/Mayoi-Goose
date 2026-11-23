@@ -22,6 +22,7 @@ var flds: Fld[>..] = [];
 var opts: Opt[>..] = [];
 var vals: Val[>..] = [];
 var folder: Val[>..] = [];      // the keys the folder's .mayoi/settings.json chooses
+var scope: i32 = 0;             // 0 the person's settings, 1 the folder's
 var built = false;
 
 // the window's own state
@@ -266,8 +267,30 @@ fn folder_mark(key: const u8[:], v: const u8[:]) {
 
 fn folder_clear() { folder.resize(0); }
 
+fn folder_idx(key: const u8[:]) -> i64 {
+    var k: i64 = 0;
+    while k < folder.len {
+        if same(folder[k].key[0..folder[k].key.len], key) { return k; }
+        k++;
+    }
+    return -1;
+}
+
+fn folder_unmark(key: const u8[:]) {
+    let k = folder_idx(key);
+    if k < 0 { return; }
+    var m: i64 = k;
+    while m + 1 < folder.len { folder[m] = folder[m + 1]; m++; }
+    folder.resize(folder.len - 1);
+}
+
 // value is what the field holds, or its default while nothing was chosen.
 fn value(i: i32) -> const u8[:] {
+    if scope == 1 {
+        let f = folder_idx(flds[i].key[0..flds[i].key.len]);
+        if f >= 0 { return folder[f].v[0..folder[f].v.len]; }
+        return flds[i].def[0..flds[i].def.len];
+    }
     let k = find_val(i);
     if k >= 0 { return vals[k].v[0..vals[k].v.len]; }
     return flds[i].def[0..flds[i].def.len];
@@ -275,7 +298,7 @@ fn value(i: i32) -> const u8[:] {
 
 fn set(i: i32, v: const u8[:]) {
     let key = flds[i].key[0..flds[i].key.len];
-    if folder_has(key) { folder_mark(key, v); }
+    if scope == 1 || folder_has(key) { folder_mark(key, v); }
     let k = find_val(i);
     if k >= 0 {
         vals[k].v.resize(0);
@@ -321,12 +344,14 @@ fn set_num(i: i32, v: i32) {
 }
 
 fn changed(i: i32) -> bool {
+    if scope == 1 { return folder_has(flds[i].key[0..flds[i].key.len]); }
     let k = find_val(i);
     if k < 0 { return false; }
     return !same(vals[k].v[0..vals[k].v.len], flds[i].def[0..flds[i].def.len]);
 }
 
 fn reset(i: i32) {
+    if scope == 1 { folder_unmark(flds[i].key[0..flds[i].key.len]); return; }
     let k = find_val(i);
     if k >= 0 { vals[k].v.resize(0); }
 }

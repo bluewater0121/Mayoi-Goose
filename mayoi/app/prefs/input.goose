@@ -3,6 +3,7 @@
 namespace prefs;
 
 import std;
+import os;
 import ui.win;
 import ui.theme;
 import app.state;
@@ -67,6 +68,21 @@ fn click(x: i32, y: i32) {
     if k == state::HIT_PREFS_CLOSE {
         prefs::store_save();
         prefs::close();
+        return;
+    }
+    if k == state::HIT_PREFS_SCOPE {
+        if prefs::scope == 0 {
+            if state::root.len == 0 {
+                app::set_status("文件夹设置需要先打开一个文件夹");
+                return;
+            }
+            var dir: u8[>..] = [];
+            dir.append(state::root);
+            dir.append("/.mayoi");
+            make_dir(dir[0..dir.len]);
+            prefs::scope = 1;
+        } else { prefs::scope = 0; }
+        win::invalidate();
         return;
     }
     if k == state::HIT_PREFS_NAV {
