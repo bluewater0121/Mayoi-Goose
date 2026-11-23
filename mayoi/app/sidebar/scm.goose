@@ -68,6 +68,13 @@ fn read_branch() {
     while k < i && head[k] != '\n' && head[k] != '\r' { scm_branch.push(head[k]); k++; }
 }
 
+// git_exe is the Git to run. Mayoi does not need Git on PATH: this machine
+// keeps it in C:\bin\mingit, so that copy is used when it is there.
+fn git_exe() -> const u8[:] {
+    if file_exists("C:\\bin\\mingit\\cmd\\git.exe") { return "\"C:\\bin\\mingit\\cmd\\git.exe\""; }
+    return "git";
+}
+
 fn run_git(cmd: const u8[:]) -> i64 {
     var out: u8[>..] = [];
     out.resize(65536, 0);
@@ -78,7 +85,8 @@ fn run_git(cmd: const u8[:]) -> i64 {
 
 fn git_status_raw(out: u8[>..]&) {
     var cmd: u8[>..] = [];
-    cmd.append("git -c core.quotepath=false status --porcelain -uno");
+    cmd.append(git_exe());
+    cmd.append(" -c core.quotepath=false status --porcelain -uno");
     var buf: u8[>..] = [];
     buf.resize(65536, 0);
     var cwd: u8[>..] = [];
@@ -130,7 +138,8 @@ fn reload_scm() {
 
 fn scm_init() {
     var cmd: u8[>..] = [];
-    cmd.append("git init");
+    cmd.append(git_exe());
+    cmd.append(" init");
     let n = run_git(cmd);
     state::scm_loaded = false;
     reload_scm();
@@ -140,7 +149,10 @@ fn scm_init() {
 fn scm_commit() {
     if state::scm_msg.len == 0 { return; }
     var cmd: u8[>..] = [];
-    cmd.append("git add -A && git commit -m \"");
+    cmd.append(git_exe());
+    cmd.append(" add -A && ");
+    cmd.append(git_exe());
+    cmd.append(" commit -m \"");
     cmd.append(state::scm_msg);
     cmd.append("\"");
     let n = run_git(cmd);
