@@ -2,3 +2,5 @@
 /reference
 *.exe
 
+/mayoi/build/
+.tmp/
