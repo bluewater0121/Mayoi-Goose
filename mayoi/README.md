@@ -87,6 +87,9 @@ cd C:\work\prj\winhx\mayoi
   - 会话：已打开文档列表，当前文档高亮，点击切换。
 - 右键菜单：文件树行、树空白区、编辑器各一套；宽 = 最长项 + 56px，行 24、分隔 9，禁用项 faint，悬停高亮；编辑器菜单需先点进编辑区再右键（与参考一致：撤销/剪切/复制/删除灰、粘贴/全选可用）。
 - 设置窗口（「文件 › 设置…」「文件 › 键盘快捷方式…」「插件 › 管理插件…」均可打开）：居中 940×690 模态窗口，左侧「搜索设置」+ 11 个分区（外观/字体/编辑器/Markdown/终端/差异与合并/Git/Vim/插件/通用/键盘快捷方式，各带图标与已更改计数）、底部 settings.json / keybindings.json 链接；右侧分区标题 + 「用户」范围选择；内容按参考的 schema 生成，共 63 项设置，每项一张卡片：标题、说明（按宽度折行）、键名（等宽小字），右侧是开关 / − 数值 + / 下拉（点开为浮层选项）/ 文本框；改动后标题旁出现 accent 圆点、侧栏分区出现计数、右下出现「恢复默认」，键盘快捷方式分区列出 271 条命令与其快捷键并可按名称/键位搜索。搜索框输入即在 10 个分区全部设置中匹配（标题、说明、键名），标题变为「找到 N 项设置」。
+- 设置落盘：启动读 `%APPDATA%\Mayoi\settings.json`，改动后写回（只写变化过的键，布尔/数字/文本/枚举格式与参考一致）；键名与 `internal\settings\schema.go` 对齐，因此和真实 Mayoi 的配置可互读。
+- Vim 模式（设置里打开 `vim`，或菜单「查看 › Vim 模式」）：状态栏显示 NORMAL / INSERT / VISUAL / V-LINE / EX 徽标（NORMAL 灰底、INSERT 紫、VISUAL 琥珀），并显示已敲的前缀键。支持 h j k l w b e 0 ^ $ gg G（带 count）、dd cc yy、d/c/y + 移动、x p P、i a I A o O、u / Ctrl+R、v / V、`:` 命令行（`:w` `:q` `:wq` `:x` `:<行号>`）、Esc 逐级退出；寄存器跨行保存，重切文档回到 NORMAL。（`docs/vim-normal.png`、`vim-insert.png`、`vim-visual.png`）
+- 插件系统：读 `~/.mayoi/plugins` 下各文件夹的 `plugin.json`（name / displayName / version / description / author），设置「插件」分区列出已安装卡片（字母 tile、版本·作者、描述、启用开关、垃圾桶）、空态、安装卡片与「插件设置」4 项；启用状态写在 `settings.json` 的 `plugins` 键（`{"<name>": {"enabled": false}}`），支持重新加载、打开插件文件夹、选择文件夹安装（xcopy 复制）、两次点击删除（rmdir）。插件命令本身不执行（无 JS 运行时）。（`docs/plugins.png`、`plugins-off.png`、`plugins-empty.png`）
 - 最小化恢复：`WM_SIZE` / `WM_ACTIVATE` / `WM_SHOWWINDOW` / `WM_DPICHANGED` 在窗口过程里被 `PostMessage` 转发进 goose 队列（`0x8002`…`0x8005`），恢复时 `SWP_FRAMECHANGED` + 重建 DIB + 重排 + 重绘，修复「最小化再恢复一片黑」。
 - 标签条：42px 高，标签 42+label+42，活动标签 2px accent 顶边与 1px 右边框，图标 16px、关闭按钮 14px、脏标记。
 - 面包屑：`cmd › mayoi › editor.go` 形式，末段为文件图标 + 文件名。
@@ -116,10 +119,12 @@ cd C:\work\prj\winhx\mayoi
 
 ## 未完成
 
-- 下方面板（问题/输出/终端/调试）内容与终端命令执行仍为近似；markdown 预览、vim 模式未做。
+- 下方面板（问题/输出/终端/调试）内容与终端命令执行仍为近似；markdown 预览未做。
+- Vim 还差 `vimCtrlKeys`（Ctrl+F/B/R/A/X 交给普通模式）、视觉模式的 `J` / `>` / `<` / 缩进等命令；缩进宽度等编辑器选项尚未反作用到渲染。
 - 命令面板/全局查找/快速打开有浮层但结果列表与交互未完整跑通。
 - 编辑器右侧滚动条（Mayoi 是滚动时浮现的 overlay 样式）未实现。
 - 本机没有在 PATH 上的 `git.exe`（已下载 MinGit 2.56.1 到 `C:\bin\mingit`，未加入 PATH，程序也不会自行找它）：「初始化仓库」「提交」仍只能给出「未找到 Git」提示。
-- 设置窗口的 63 项改动只保存在本次会话里：不写 `settings.json`，也不反过来改变编辑器（字号/主题/自动换行等）；`settings.json` / `keybindings.json` 底部链接仅作展示，`用户` 范围选择未接文件夹级设置。
+- 设置的 63 项已能落盘到 `settings.json`，但字号、主题等尚未反作用到编辑器；`keybindings.json` 底部链接仅作展示，`用户` 范围选择未接文件夹级设置。
+- 插件只做清单、启停、安装/删除/重载与设置页：没有 JS 运行时，插件的命令、`contributes`、格式化/language server 均不执行；插件详情页（`prefsplugindetail.go`）未做。
 - 树菜单的「粘贴」恒灰（文件剪贴板未实现）；「在终端中打开」目前仅调用系统终端打开目录。
 - 侧栏/菜单字体用 Segoe UI，参考（Skia）字形更细，近邻放大仍有可见的笔画差异。

@@ -9,6 +9,7 @@ import app.state;
 import app.icons;
 import app.menu.model;
 import .model;
+import .plugbody;
 
 var ox: i32 = 0;
 var oy: i32 = 0;
@@ -555,10 +556,13 @@ fn paint() {
     page_head();
     if prefs::section == 10 && prefs::query.len == 0 {
         shortcuts_body();
+    } else if prefs::section == 8 && prefs::query.len == 0 {
+        plugins_body();
     } else {
         fields_body();
     }
     scrollbar();
     draw_combo();
 }
+
 

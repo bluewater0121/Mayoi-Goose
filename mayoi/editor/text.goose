@@ -150,6 +150,7 @@ fn untitled() -> i32 {
 // --- line index --------------------------------------------------------------
 
 fn reindex() {
+    if state::docs.len == 0 { return; }
     let d .= curdoc();
     state::lines.resize(0);
     state::lines.push(0);
@@ -163,11 +164,13 @@ fn reindex() {
 }
 
 fn nlines() -> i32 {
+    if state::docs.len == 0 { return 0; }
     if state::lines_doc != state::cur || state::lines_len != curdoc().len { reindex(); }
     return state::lines.len as i32;
 }
 
 fn line_col(p: i64) -> i32, i64 {
+    if state::docs.len == 0 { return 0, 0; }
     reindex();
     var lo: i64 = 0;
     var hi = state::lines.len - 1;
@@ -181,12 +184,14 @@ fn line_col(p: i64) -> i32, i64 {
 }
 
 fn line_start(l: i32) -> i64 {
+    if state::docs.len == 0 { return 0; }
     if l < 0 { return 0; }
     if l >= nlines() { return curdoc().len; }
     return state::lines[l];
 }
 
 fn line_end(l: i32) -> i64 {
+    if state::docs.len == 0 { return 0; }
     let d .= curdoc();
     if l + 1 >= nlines() { return d.len; }
     return state::lines[l + 1] - 1;

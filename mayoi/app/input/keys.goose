@@ -7,6 +7,7 @@ import ui.theme;
 import ui.win;
 import editor.text;
 import editor.syntax;
+import editor.vim;
 import explore.tree;
 import app.draw;
 import app.icons;
@@ -54,6 +55,9 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
             return true;
         }
         return false;
+    }
+    if vim::on() && state::focus == 0 && state::cur >= 0 && state::overlay == 0 && !state::menu_open {
+        if vim::key(vk, ctrl, shift, alt) { win::invalidate(); return true; }
     }
     if ctrl {
         if vk == input::VK_S { input::save_file(); return true; }

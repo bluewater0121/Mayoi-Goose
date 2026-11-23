@@ -216,6 +216,22 @@ fn find_val(i: i32) -> i64 {
     return -1;
 }
 
+// index_of is the field of a key, as settings.json names it, -1 for none.
+fn index_of(key: const u8[:]) -> i32 {
+    var i: i32 = 0;
+    while i < flds.len as i32 {
+        if same(flds[i].key[0..flds[i].key.len], key) { return i; }
+        i++;
+    }
+    return -1;
+}
+
+fn bool_of(key: const u8[:]) -> bool {
+    let i = index_of(key);
+    if i < 0 { return false; }
+    return is_true(i);
+}
+
 // value is what the field holds, or its default while nothing was chosen.
 fn value(i: i32) -> const u8[:] {
     let k = find_val(i);

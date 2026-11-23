@@ -456,3 +456,15 @@ fn dispatch(m: const Msg&) { dispatch_message(m); }
 
 fn pick_file(h: u64, out: u8&, cap: i64) -> i64 { return gs_pick_file(h, out, cap); }
 fn pick_folder(h: u64, out: u8&, cap: i64) -> i64 { return gs_pick_folder(h, out, cap); }
+
+// run_silent runs a command line and keeps its output, which the caller
+// does not want.
+fn run_silent(cmd: const u8[:]) {
+    if cmd.len == 0 { return; }
+    var out: u8[..8192] = [];
+    out.resize(8192, 0);
+    var cwd: u8[..2] = [];
+    cwd.resize(2, 0);
+    gs_run_cmd(cmd[0], cmd.len, out[0], 8192, cwd[0], 0);
+}
+

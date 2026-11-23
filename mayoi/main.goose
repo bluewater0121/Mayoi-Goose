@@ -16,6 +16,7 @@ import app.sidebar;
 import app.tabs;
 import app.status;
 import editor.editor;
+import editor.vim;
 import app.layout;
 import app.view;
 import app.overlay;
@@ -24,6 +25,8 @@ import app.menu.input;
 import app.menu.paint;
 import app.prefs.input;
 import app.prefs.model;
+import app.prefs.store;
+import app.plugins.model;
 import ui.icons;
 
 fn main() {
@@ -42,6 +45,8 @@ fn main() {
     win::resize_frame(rc.r, rc.b);
     app::fonts();
     prefs::init();
+    prefs::store_load();
+    plug::load();
 
     let argv = args();
     if argv.len > 1 {
@@ -165,6 +170,11 @@ fn main() {
                 win::invalidate();
                 continue;
             }
+            if vim::on() && state::focus == 0 && state::cur >= 0 && vim::mode_of() != 1 {
+                vim::char(msg.wp as u16);
+                win::invalidate();
+                continue;
+            }
             input::char_typed(msg.wp as u16);
             win::invalidate();
             continue;
@@ -221,6 +231,9 @@ fn main() {
         win::dispatch_message(msg);
     }
 }
+
+
+
 
 
 

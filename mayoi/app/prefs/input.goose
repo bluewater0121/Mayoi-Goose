@@ -7,8 +7,10 @@ import ui.win;
 import ui.theme;
 import app.state;
 import app.input.vk;
+import app.plugins.model;
 import .model;
 import .paint;
+import .store;
 
 fn clamp_scroll() {
     var maxs = prefs::total_rows - prefs::shown_rows;
@@ -25,6 +27,17 @@ fn commit_edit() {
             prefs::set(prefs::edit, prefs::edit_buf[0..prefs::edit_buf.len]);
         }
         prefs::edit = -1;
+        prefs::store_save();
+    }
+}
+
+fn pick_and_install() {
+    var buf: u8[>..] = [];
+    buf.resize(4096);
+    let n = win::pick_folder(win::hwnd, buf[0], 4096);
+    if n > 0 {
+        buf.resize(n);
+        plug::install(buf[0..buf.len]);
     }
 }
 
@@ -32,6 +45,7 @@ fn click(x: i32, y: i32) {
     let hi = state::find_hit(x, y);
     if hi < 0 {
         commit_edit();
+        prefs::store_save();
         prefs::close();
         return;
     }
@@ -49,6 +63,7 @@ fn click(x: i32, y: i32) {
     }
     let k = h.kind;
     if k == state::HIT_PREFS_CLOSE {
+        prefs::store_save();
         prefs::close();
         return;
     }
@@ -108,12 +123,33 @@ fn click(x: i32, y: i32) {
         prefs::reset(h.arg as i32);
         return;
     }
+    if k == state::HIT_PREFS_PL_RELOAD {
+        plug::reload();
+        return;
+    }
+    if k == state::HIT_PREFS_PL_FOLDER {
+        plug::open_folder();
+        return;
+    }
+    if k == state::HIT_PREFS_PL_TOGGLE {
+        plug::toggle(h.arg as i32);
+        return;
+    }
+    if k == state::HIT_PREFS_PL_REMOVE {
+        plug::remove(h.arg as i32);
+        return;
+    }
+    if k == state::HIT_PREFS_PL_INSTALL {
+        prefs::pick_and_install();
+        return;
+    }
 }
 
 fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
     if vk == input::VK_ESC {
         if prefs::combo >= 0 { prefs::combo = -1; return true; }
         if prefs::edit != -1 { prefs::edit = -1; return true; }
+        prefs::store_save();
         prefs::close();
         return true;
     }
@@ -175,6 +211,12 @@ fn typed(cp: u16) {
 
 fn wheel(ticks: i32) {
     if prefs::edit == -2 { return; }
+    if prefs::section == 8 && prefs::query.len == 0 {
+        prefs::scroll = prefs::scroll - ticks * state::px(40);
+        if prefs::scroll < 0 { prefs::scroll = 0; }
+        if prefs::scroll > prefs::max_scroll { prefs::scroll = prefs::max_scroll; }
+        return;
+    }
     prefs::scroll = prefs::scroll - ticks * 3;
     clamp_scroll();
 }

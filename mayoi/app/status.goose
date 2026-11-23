@@ -6,6 +6,7 @@ import app.state;
 import ui.theme;
 import ui.win;
 import editor.text;
+import editor.vim;
 import explore.tree;
 // --- status bar --------------------------------------------------------------
 
@@ -29,7 +30,22 @@ fn status_bar() {
     win::fill(0, y, state::W, state::status_h, p.status);
     win::fill(0, y, state::W, 1, p.border);
     icon_at(10, state::px(24), y + (state::status_h - state::px(16)) / 2, state::px(16), p.muted);
+    let rootw = chw(state::f_small, state::root_name);
     ch(state::f_small, state::px(46), y + state::status_h / 2, state::root_name, p.text);
+    if vim::on() && state::cur >= 0 && state::docs.len > 0 {
+        let m = vim::mode_name();
+        let mw = chw(state::f_small, m) + state::px(10);
+        let mx = state::px(46) + rootw + state::px(12);
+        let mh = state::px(17);
+        var bg = win::mix(p.status, p.text, 90);
+        var fg = p.status_fg;
+        if vim::mode_of() == 1 { bg = p.accent; fg = p.chrome; }
+        if vim::mode_of() == 2 || vim::mode_of() == 3 { bg = p.modified; fg = p.chrome; }
+        win::round_rect(mx, y + (state::status_h - mh) / 2, mw, mh, state::px(4), state::px(4), bg);
+        ch(state::f_small, mx + state::px(5), y + state::status_h / 2, m, fg);
+        let pn = vim::pending_text();
+        if pn.len > 0 { ch(state::f_small, mx + mw + state::px(8), y + state::status_h / 2, pn, p.status_fg); }
+    }
 
     var rx = state::W - state::px(16);
     var lang = "纯文本";
