@@ -4,6 +4,7 @@
 namespace prefs;
 
 import std;
+import i18n;
 import ui.win;
 import app.state;
 import .data;
@@ -40,17 +41,17 @@ var detail: i32 = -1;       // the plugin the Plugins page shows in detail, -1 f
 let SEC_COUNT = 11;
 
 fn sec_name(i: i32) -> const u8[:] {
-    if i == 0 { return "外观"; }
-    if i == 1 { return "字体"; }
-    if i == 2 { return "编辑器"; }
-    if i == 3 { return "Markdown"; }
-    if i == 4 { return "终端"; }
-    if i == 5 { return "差异与合并"; }
-    if i == 6 { return "Git"; }
-    if i == 7 { return "Vim"; }
-    if i == 8 { return "插件"; }
-    if i == 9 { return "通用"; }
-    return "键盘快捷方式";
+    if i == 0 { return i18n::t("外观"); }
+    if i == 1 { return i18n::t("字体"); }
+    if i == 2 { return i18n::t("编辑器"); }
+    if i == 3 { return i18n::t("Markdown"); }
+    if i == 4 { return i18n::t("终端"); }
+    if i == 5 { return i18n::t("差异与合并"); }
+    if i == 6 { return i18n::t("Git"); }
+    if i == 7 { return i18n::t("Vim"); }
+    if i == 8 { return i18n::t("插件"); }
+    if i == 9 { return i18n::t("通用"); }
+    return i18n::t("键盘快捷方式");
 }
 
 // sec_icon is the icon kind of app/icons for the section, as the reference
@@ -123,12 +124,12 @@ fn add_field(a: i64, b: i64) {
             let piece = FIELDS[start..k];
             if col == 0 { fill_key(f.key, piece); }
             else if col == 1 { f.kind = to_int(piece); }
-            else if col == 2 { fill_title(f.title, piece); }
-            else if col == 3 { fill_desc(f.desc, piece); }
+            else if col == 2 { fill_title(f.title, i18n::t(piece)); }
+            else if col == 3 { fill_desc(f.desc, i18n::t(piece)); }
             else if col == 4 { f.minv = to_int(piece); }
             else if col == 5 { f.maxv = to_int(piece); }
             else if col == 6 { f.step = to_int(piece); }
-            else if col == 7 { fill_def(f.def, piece); }
+            else if col == 7 { fill_def(f.def, i18n::t(piece)); }
             else if col == 8 { f.sec = to_int(piece); }
             col++;
             start = k + 1;
@@ -148,7 +149,7 @@ fn add_opt(a: i64, b: i64) {
             let piece = OPTS[start..k];
             if col == 0 { fill_key(o.key, piece); }
             else if col == 1 { o.idx = to_int(piece); }
-            else if col == 2 { fill_label(o.label, piece); }
+            else if col == 2 { fill_label(o.label, i18n::t(piece)); }
             else if col == 3 { fill_raw(o.raw, piece); }
             col++;
             start = k + 1;
@@ -179,6 +180,15 @@ fn init() {
         }
         k++;
     }
+}
+
+// reload rebuilds the field and option tables after the language changed, so
+// their titles and descriptions come out in the new one.
+fn reload() {
+    flds.resize(0);
+    opts.resize(0);
+    built = false;
+    init();
 }
 
 fn open_at(sec: i32) {

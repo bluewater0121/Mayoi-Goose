@@ -2,6 +2,7 @@
 namespace chrome;
 
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 import explore.tree;
@@ -35,7 +36,7 @@ fn push_label(dst: u8[..80]&, src: const u8[:]) {
 
 fn ctx_add(label: const u8[:], act: i32, enabled: bool) {
     var it: CtxItem = CtxItem { .. };
-    push_label(it.label, label);
+    push_label(it.label, i18n::t(label));
     it.act = act;
     it.enabled = enabled;
     it.sep = false;

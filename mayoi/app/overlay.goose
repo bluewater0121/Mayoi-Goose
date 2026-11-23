@@ -3,6 +3,7 @@ namespace app;
 import std;
 import os;
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 import editor.text;
@@ -60,7 +61,7 @@ fn paint_overlay() {
             if k > start {
                 let it = items[start..k];
                 if idx == state::overlay_sel { win::fill(x + state::px(4), ly + idx * lh, w - state::px(8), lh, p.surface_hover); }
-                win::text_at(state::f_ui, x + state::px(14), ly + idx * lh + (lh - win::th(state::f_ui)) / 2, it, p.text);
+                win::text_at(state::f_ui, x + state::px(14), ly + idx * lh + (lh - win::th(state::f_ui)) / 2, i18n::t(it), p.text);
                 state::add_hit(state::HIT_OVERLAY, x + state::px(4), ly + idx * lh, w - state::px(8), lh, idx as i64 + 1);
                 idx++;
             }

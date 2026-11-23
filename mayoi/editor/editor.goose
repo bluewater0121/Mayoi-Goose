@@ -5,6 +5,7 @@ namespace editor;
 import std;
 import os;
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 import editor.text;
@@ -549,12 +550,12 @@ fn welcome(x0: i32, y0: i32, w: i32, h: i32) {
     title.append("Mayoi");
     win::text_at(state::f_title, lx + state::px(74), top + state::px(2), title, p.text);
     var sub: u8[>..] = [];
-    sub.append("迷い · 小巧、快速的代码编辑器");
+    sub.append(i18n::t("迷い · 小巧、快速的代码编辑器"));
     win::text_at(state::f_ui, lx + state::px(74), top + state::px(36), sub, p.muted);
 
     var y = top + state::px(110);
     var head: u8[>..] = [];
-    head.append("开始");
+    head.append(i18n::t("开始"));
     win::text_at(state::f_small, lx, y, head, p.faint);
     y = y + state::px(26);
     row_button(lx, y, state::px(600), "新建文件", "Ctrl+N", 1); y = y + state::px(38);
@@ -581,7 +582,7 @@ fn row_button(x: i32, y: i32, w: i32, label: const u8[:], key: const u8[:], act:
     if act == 1 { icon = 13; } else if act == 2 { icon = 10; } else if act == 3 { icon = 10; }
     else if act == 4 { icon = 4; } else if act == 5 { icon = 17; } else { icon = 5; }
     icon_at(icon, tx + state::px(6), y + state::px(8), state::px(14), p.muted);
-    win::text_at(state::f_ui, tx + state::px(30), y + state::px(6), label, p.text);
+    win::text_at(state::f_ui, tx + state::px(30), y + state::px(6), i18n::t(label), p.text);
     if key.len > 0 {
         let kw = win::measure(state::f_small, key) + state::px(12);
         let kx = x + w - kw;

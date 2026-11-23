@@ -2,6 +2,7 @@
 namespace app;
 import std;
 import os;
+import i18n;
 import app.state;
 import ui.theme;
 import ui.win;
@@ -99,10 +100,10 @@ fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {
     tabs.append("问题\0输出\0终端\0调试");
     var x = x0 + state::px(16);
     var labels: u8[>..] = [];
-    labels.append("问题"); labels.push('\n');
-    labels.append("输出"); labels.push('\n');
-    labels.append("终端"); labels.push('\n');
-    labels.append("调试");
+    labels.append(i18n::t("问题")); labels.push('\n');
+    labels.append(i18n::t("输出")); labels.push('\n');
+    labels.append(i18n::t("终端")); labels.push('\n');
+    labels.append(i18n::t("调试"));
     var i: i32 = 0;
     var start: i64 = 0;
     var k: i64 = 0;
@@ -157,8 +158,8 @@ fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {
             return;
         }
         var text: u8[>..] = [];
-        if state::panel_tab == 0 { text.append("未发现问题。"); }
-        else { text.append("调试会话尚未启动，按 F5 开始调试。"); }
+        if state::panel_tab == 0 { text.append(i18n::t("未发现问题。")); }
+        else { text.append(i18n::t("调试会话尚未启动，按 F5 开始调试。")); }
         win::text_at(state::f_ui, x0 + state::px(16), ty, text, p.muted);
         state::add_hit(state::HIT_CARET, x0, y0 + state::panel_head, w, h - state::panel_head, 1);
         return;

@@ -6,6 +6,7 @@ import std;
 import ui.win;
 import ui.theme;
 import app.state;
+import i18n;
 import app.icons;
 import app.menu.model;
 import .model;
@@ -155,7 +156,7 @@ fn frame() {
     let th = state::px(40);
     win::fill(prefs::ox, prefs::oy, w as i64, th, p.panel);
     win::line(prefs::ox, prefs::oy + th, prefs::ox + w - 1, prefs::oy + th, p.border, 1);
-    pf(state::f_prefs_h, prefs::ox + state::px(16), prefs::oy + (th - win::th(state::f_prefs_h)) / 2, "设置", p.text);
+    pf(state::f_prefs_h, prefs::ox + state::px(16), prefs::oy + (th - win::th(state::f_prefs_h)) / 2, i18n::t("设置"), p.text);
     let ic = state::px(14);
     chrome::icon_at(12, prefs::ox + w - state::px(30), prefs::oy + (th - ic) / 2, ic, p.muted);
     state::add_hit(state::HIT_PREFS_CLOSE, prefs::ox + w - state::px(38), prefs::oy, state::px(38), th, 0);
@@ -179,7 +180,7 @@ fn sidebar() {
     chrome::icon_at(4, sx + state::px(7), sy + (sh - state::px(12)) / 2, state::px(12), p.faint);
     let f = state::f_prefs;
     if prefs::query.len == 0 {
-        pf(f, sx + state::px(24), sy + (sh - win::th(f)) / 2, "搜索设置", p.faint);
+        pf(f, sx + state::px(24), sy + (sh - win::th(f)) / 2, i18n::t("搜索设置"), p.faint);
     } else {
         pfit(f, sx + state::px(24), sy + (sh - win::th(f)) / 2, prefs::query[0..prefs::query.len], sw - state::px(30), p.text);
         if prefs::edit == -2 && state::blink {
@@ -269,7 +270,7 @@ fn page_head() {
     let by = hy + (hh - state::px(24)) / 2;
     pbox(bx, by, lw, state::px(24), false);
     pf(state::f_prefs, bx + state::px(8), by + (state::px(24) - win::th(state::f_prefs)) / 2,
-       if prefs::scope == 1 { "文件夹" } else { "用户" }, p.muted);
+       if prefs::scope == 1 { i18n::t("文件夹") } else { i18n::t("用户") }, p.muted);
     state::add_hit(state::HIT_PREFS_SCOPE, bx, by, lw, state::px(24), 0);
     chrome::icon_at(8, bx + lw - state::px(16), by + state::px(7), state::px(10), p.muted);
     win::line(x, hy + hh, x + w - 1, hy + hh, p.border, 1);
@@ -353,7 +354,7 @@ fn text_ctrl(i: i32, x: i32, y: i32, w: i32) {
         while k < v.len { buf.push(v[k]); k++; }
     }
     if buf.len == 0 {
-        pf(state::f_prefs, x + state::px(8), y + (h - win::th(state::f_prefs)) / 2, "默认", p.faint);
+        pf(state::f_prefs, x + state::px(8), y + (h - win::th(state::f_prefs)) / 2, i18n::t("默认"), p.faint);
     } else {
         pfit(state::f_prefs, x + state::px(8), y + (h - win::th(state::f_prefs)) / 2, buf[0..buf.len], w - state::px(14), p.text);
     }
@@ -369,7 +370,7 @@ fn wide_ctrl(i: i32, x: i32, y: i32, w: i32) {
     let v = prefs::value(i);
     var hint: const u8[:] = "[]";
     if prefs::flds[i].kind == prefs::K_JSON { hint = "{ }"; }
-    if prefs::flds[i].kind == prefs::K_STYLES { hint = "按文件夹保存"; }
+    if prefs::flds[i].kind == prefs::K_STYLES { hint = i18n::t("按文件夹保存"); }
     if v.len == 0 {
         pf(state::f_prefs, x + state::px(8), y + (h - win::th(state::f_prefs)) / 2, hint, p.faint);
     } else {

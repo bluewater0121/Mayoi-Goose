@@ -2,6 +2,7 @@
 namespace chrome;
 
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 
@@ -27,9 +28,9 @@ fn rail() {
 
 fn view_title() -> u8[>..] {
     var t: u8[>..] = [];
-    if state::view == 1 { t.append("资源管理器"); }
-    else if state::view == 2 { t.append("搜索"); }
-    else if state::view == 3 { t.append("源代码管理"); }
-    else { t.append("会话"); }
+    if state::view == 1 { t.append(i18n::t("资源管理器")); }
+    else if state::view == 2 { t.append(i18n::t("搜索")); }
+    else if state::view == 3 { t.append(i18n::t("源代码管理")); }
+    else { t.append(i18n::t("会话")); }
     return t;
 }

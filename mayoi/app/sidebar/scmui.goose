@@ -4,6 +4,7 @@ namespace chrome;
 
 import std;
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 import app.icons;
@@ -23,9 +24,9 @@ fn scm_body(top: i32) {
         win::fill(cx - state::px(24), by, state::px(48), state::px(48), p.chrome);
         win::circle(cx, by + state::px(22), state::px(22), p.border, 1);
         icon_at(5, cx - state::px(10), by + state::px(12), state::px(20), p.muted);
-        ch(state::f_small_b, cx - win::measure(state::f_small_b, "没有 Git 仓库") / 2, by + state::px(58), "没有 Git 仓库", p.text);
-        let d1 = "此文件夹不在 Git 仓库中。";
-        let d2 = "将其初始化为仓库以跟踪并提交更改。";
+        ch(state::f_small_b, cx - win::measure(state::f_small_b, i18n::t("没有 Git 仓库")) / 2, by + state::px(58), i18n::t("没有 Git 仓库"), p.text);
+        let d1 = i18n::t("此文件夹不在 Git 仓库中。");
+        let d2 = i18n::t("将其初始化为仓库以跟踪并提交更改。");
         let dy = by + state::px(78);
         ch(state::f_small, cx - win::measure(state::f_small, d1) / 2, dy, d1, p.muted);
         ch(state::f_small, cx - win::measure(state::f_small, d2) / 2, dy + state::px(18), d2, p.muted);
@@ -33,7 +34,7 @@ fn scm_body(top: i32) {
         let btnx = state::px(20);
         let btny = dy + state::px(44);
         win::round_rect(btnx, btny, btnw, state::px(28), state::px(5), state::px(5), p.accent);
-        ch(state::f_small_b, btnx + (btnw - win::measure(state::f_small_b, "初始化仓库")) / 2, btny + state::px(14), "初始化仓库", theme::hx(255, 255, 255));
+        ch(state::f_small_b, btnx + (btnw - win::measure(state::f_small_b, i18n::t("初始化仓库"))) / 2, btny + state::px(14), i18n::t("初始化仓库"), theme::hx(255, 255, 255));
         state::add_hit(state::HIT_SCM_INIT, btnx, btny, btnw, state::px(28), 0);
         return;
     }
@@ -44,7 +45,7 @@ fn scm_body(top: i32) {
     if scm_branch.len > 0 { label.append(scm_branch); } else { label.append("HEAD"); }
     ch(state::f_small, state::px(34), by + state::px(7), label, p.text);
     if scm_err {
-        ch(state::f_small, w - state::px(14) - win::measure(state::f_small, "未找到 Git"), by + state::px(7), "未找到 Git", p.faint);
+        ch(state::f_small, w - state::px(14) - win::measure(state::f_small, i18n::t("未找到 Git")), by + state::px(7), i18n::t("未找到 Git"), p.faint);
     }
     let bx = state::px(12);
     let bw = w - state::px(24);
@@ -58,7 +59,7 @@ fn scm_body(top: i32) {
     state::add_hit(state::HIT_SCM_COMMIT, bx, by2, bw, bh, 1);
     let ty = by2 + (bh - win::th(state::f_small)) / 2;
     if state::scm_msg.len == 0 {
-        win::text_at(state::f_small, bx + state::px(8), ty, "提交消息", p.faint);
+        win::text_at(state::f_small, bx + state::px(8), ty, i18n::t("提交消息"), p.faint);
     } else {
         win::text_at(state::f_small, bx + state::px(8), ty, state::scm_msg, p.text);
         if state::scm_focus == 1 && state::blink {
@@ -84,11 +85,11 @@ fn scm_body(top: i32) {
     ch(state::f_small_b, state::px(14), cy + state::px(7), head, p.text);
     cy = cy + state::px(22);
     if scm_err {
-        ch(state::f_small, state::px(14), cy + state::px(8), "未找到 Git，无法读取状态", p.faint);
+        ch(state::f_small, state::px(14), cy + state::px(8), i18n::t("未找到 Git，无法读取状态"), p.faint);
         return;
     }
     if scm_n == 0 {
-        ch(state::f_small, state::px(14), cy + state::px(8), "没有更改", p.muted);
+        ch(state::f_small, state::px(14), cy + state::px(8), i18n::t("没有更改"), p.muted);
         return;
     }
     let rh = state::px(22);

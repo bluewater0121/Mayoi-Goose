@@ -2,6 +2,7 @@
 namespace chrome;
 
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 
@@ -11,7 +12,7 @@ fn sessions_body(top: i32) {
     let ry = top + state::px(10);
     let rh = state::px(30);
     if state::docs.len == 0 {
-        win::text_at(state::f_small, state::px(16), ry + state::px(4), "尚无会话", p.faint);
+        win::text_at(state::f_small, state::px(16), ry + state::px(4), i18n::t("尚无会话"), p.faint);
         return;
     }
     var i: i32 = 0;

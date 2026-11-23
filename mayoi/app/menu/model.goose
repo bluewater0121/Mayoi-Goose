@@ -2,6 +2,8 @@
 // labels and the same accelerators, in one flat table of records.
 namespace menu;
 
+import i18n;
+
 struct Item { depth: i32, flags: i32, id: u8[..40], label: u8[..64], accel: u8[..28] }
 
 let SUB = 1; let CHECKED = 2; let DISABLED = 4; let SEPARATOR = 8;
@@ -100,6 +102,6 @@ fn row_at(lo: i64, hi: i64, y0: i32, y1: i32, rowh: i32) -> i64 {
     return -1;
 }
 
-fn label_at(i: i64) -> const u8[:] { return items[i].label[0..items[i].label.len]; }
+fn label_at(i: i64) -> const u8[:] { return i18n::t(items[i].label[0..items[i].label.len]); }
 fn accel_at(i: i64) -> const u8[:] { return items[i].accel[0..items[i].accel.len]; }
 fn id_at(i: i64) -> const u8[:] { return items[i].id[0..items[i].id.len]; }

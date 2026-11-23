@@ -2,6 +2,7 @@
 namespace app;
 import std;
 import os;
+import i18n;
 import app.state;
 import ui.theme;
 import ui.win;
@@ -57,6 +58,15 @@ fn setting_num(key: const u8[:], def: i32) -> i32 {
 // apply_settings makes the window follow the settings that shape how it looks:
 // the light or dark palette, the code font, its size and line height.
 fn apply_settings() {
+    let li = prefs::index_of("locale");
+    if li >= 0 {
+        let lv = prefs::value(li);
+        var l: i32 = 0;
+        if lv.len == 2 && lv[0] == 'e' { l = 1; }
+        if lv.len == 2 && lv[0] == 'j' { l = 2; }
+        i18n::set_lang(l);
+        prefs::reload();
+    }
     let a = prefs::index_of("appearance");
     var light = false;
     if a >= 0 {
@@ -197,9 +207,10 @@ fn set_title(name: const u8[:]) {
 }
 
 fn set_status(msg: const u8[:]) {
+    let m = i18n::t(msg);
     state::status_msg.resize(0);
     var k: i64 = 0;
-    while k < msg.len { state::status_msg.push(msg[k]); k++; }
+    while k < m.len { state::status_msg.push(m[k]); k++; }
     if output.len > 24000 { output.resize(0); }
     output.append(msg);
     output.push('\n');

@@ -4,6 +4,7 @@ namespace menu;
 
 import ui.win;
 import os;
+import i18n;
 import ui.theme;
 import app.state;
 import app.layout;
@@ -33,6 +34,18 @@ fn relay(cmd: const u8[:]) -> bool { return eq(cmd, "file.save"); }
 fn save_theme(name: const u8[:]) {
     let i = prefs::index_of("theme");
     if i >= 0 { prefs::set(i, name); prefs::store_save(); }
+}
+
+// save_locale stores the language choice and applies it at once, the way the
+// reference's locale menu does.
+fn save_locale(name: const u8[:]) {
+    let i = prefs::index_of("locale");
+    if i >= 0 { prefs::set(i, name); prefs::store_save(); }
+    var l: i32 = 0;
+    if name.len == 2 && name[0] == 'e' { l = 1; }
+    if name.len == 2 && name[0] == 'j' { l = 2; }
+    i18n::set_lang(l);
+    prefs::reload();
 }
 
 // run_label runs the item whose label the command palette shows, the way
@@ -152,6 +165,10 @@ fn run(i: i64) {
     if eq(id, "view.theme.witchsbrew") { theme::set_named("witchsbrew"); save_theme("witchsbrew"); win::invalidate(); return; }
     if eq(id, "view.theme.bloodmoon") { theme::set_named("bloodmoon"); save_theme("bloodmoon"); win::invalidate(); return; }
     if eq(id, "view.theme.gtavi") { theme::set_named("gtavi"); save_theme("gtavi"); win::invalidate(); return; }
+    if eq(id, "view.locale.system") { save_locale(""); win::invalidate(); return; }
+    if eq(id, "view.locale.en") { save_locale("en"); win::invalidate(); return; }
+    if eq(id, "view.locale.ja") { save_locale("ja"); win::invalidate(); return; }
+    if eq(id, "view.locale.zh") { save_locale("zh-Hans"); win::invalidate(); return; }
     if eq(id, "view.togglePreview") {
         state::preview_open = !state::preview_open;
         state::preview_side = false;

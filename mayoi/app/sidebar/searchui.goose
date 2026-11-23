@@ -6,6 +6,7 @@ import std;
 import ui.win;
 import ui.theme;
 import app.state;
+import i18n;
 import app.layout;
 import app.icons;
 
@@ -105,28 +106,28 @@ fn search_body(top: i32) {
     fy = fy + state::px(24);
     if state::search_details {
         let ih = state::px(26);
-        ch(state::f_small, state::px(42), fy + state::px(11), "包含的文件", p.muted);
+        ch(state::f_small, state::px(42), fy + state::px(11), i18n::t("包含的文件"), p.muted);
         fy = fy + state::px(24);
         box(bx, fy, bw, ih, state::search_field == 2);
         state::add_hit(state::HIT_SEARCH_FIELD, bx, fy, bw, ih, 2);
-        field_text(bx, fy, bw, ih, state::search_inc, "例如 *.go, src/**",
+        field_text(bx, fy, bw, ih, state::search_inc, i18n::t("例如 *.go, src/**"),
             state::search_field == 2 && state::blink);
         fy = fy + ih + state::px(6);
-        ch(state::f_small, state::px(42), fy + state::px(11), "排除的文件", p.muted);
+        ch(state::f_small, state::px(42), fy + state::px(11), i18n::t("排除的文件"), p.muted);
         fy = fy + state::px(24);
         box(bx, fy, bw, ih, state::search_field == 3);
         state::add_hit(state::HIT_SEARCH_FIELD, bx, fy, bw, ih, 3);
-        field_text(bx, fy, bw, ih, state::search_exc, "例如 *.test.ts, testdata",
+        field_text(bx, fy, bw, ih, state::search_exc, i18n::t("例如 *.test.ts, testdata"),
             state::search_field == 3 && state::blink);
         fy = fy + ih + state::px(14);
     }
-    win::text_at(state::f_small, state::px(42), fy, "在文件夹的文件中查找文本。", p.muted);
+    win::text_at(state::f_small, state::px(42), fy, i18n::t("在文件夹的文件中查找文本。"), p.muted);
     fy = fy + state::px(24);
-    hint_row(state::px(42), fy, "1", "转到结果");
+    hint_row(state::px(42), fy, "1", i18n::t("转到结果"));
     fy = fy + state::px(26);
-    hint_row(state::px(42), fy, "↵", "打开匹配项");
+    hint_row(state::px(42), fy, "↵", i18n::t("打开匹配项"));
     fy = fy + state::px(26);
-    hint_row(state::px(42), fy, "↑↓", "转到上一个结果");
+    hint_row(state::px(42), fy, "↑↓", i18n::t("转到上一个结果"));
     fy = fy + state::px(26);
     hint_row(state::px(42), fy, "Ctrl+Shift+H", "替换");
     fy = fy + state::px(30);
@@ -138,7 +139,7 @@ fn search_body(top: i32) {
         while d > 0 { num.push('0' + (d % 10) as u8); d = d / 10; }
         var q: i64 = num.len;
         while q > 0 { q--; head.push(num[q]); }
-        head.append(" 个结果");
+        head.append(i18n::t(" 个结果"));
         win::text_at(state::f_small, state::px(14), fy, head, p.muted);
         fy = fy + state::px(20);
     }

@@ -3,6 +3,7 @@ namespace chrome;
 
 import std;
 import app.state;
+import i18n;
 import ui.theme;
 import ui.win;
 import editor.text;
@@ -48,12 +49,12 @@ fn status_bar() {
     }
 
     var rx = state::W - state::px(16);
-    var lang = "纯文本";
+    var lang = i18n::t("纯文本");
     if state::cur >= 0 && state::docs.len > 0 { lang = text::lang_name(state::docs[state::cur].lang); }
     rx = right_item(rx, lang, p.text);
     rx = right_item(rx, "LF", p.status_fg);
     rx = right_item(rx, "UTF-8", p.status_fg);
-    rx = right_item_f(rx, "制表符", p.status_fg, state::f_cjk);
+    rx = right_item_f(rx, i18n::t("制表符"), p.status_fg, state::f_cjk);
     if state::cur >= 0 && state::docs.len > 0 {
         let n = text::nlines();
         var lines: u8[>..] = [];
