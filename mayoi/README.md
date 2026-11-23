@@ -64,6 +64,7 @@ cd C:\work\prj\winhx\mayoi
 | `app/prefs/model.goose` | 设置模型：解析内容表、分区名与图标、按键查值/改值、布尔/数字/枚举换算、默认值与「已更改」判定、跨分区搜索、快捷键分区 |
 | `app/prefs/paint.goose` | 设置窗口绘制：遮罩 + 940×690 窗体、标题栏与关闭、左侧搜索框/11 个分区/已更改徽标/settings.json 与 keybindings.json 链接、右侧分区标题与「用户」范围选择、逐项卡片（标题/说明/键名/控件）、开关/步进/下拉/文本框/列表、下拉浮层、滚动条 |
 | `app/prefs/input.goose` | 设置窗口交互：分区切换、搜索输入、开关、加减、下拉选择、文本编辑与提交、恢复默认、Esc 关闭、滚轮滚动、悬停 |
+| `app/preview/preview.goose` | Markdown 预览：标题/段落/列表/任务勾选框/引用/代码块/表格/分割线，按词折行并在超长词处断开，独立滚动与右侧 overlay 滚动条 |
 | `app/sidebar/sessions.goose` | 会话视图：已打开文档列表，点击切换 |
 | `editor/text.goose` | 文档模型：行索引、插入/删除/替换、选区、列/行换算 |
 | `editor/syntax.goose` | Go 语法着色（关键字/字符串/注释/数字） |
@@ -91,6 +92,10 @@ cd C:\work\prj\winhx\mayoi
 - Vim 模式（设置里打开 `vim`，或菜单「查看 › Vim 模式」）：状态栏显示 NORMAL / INSERT / VISUAL / V-LINE / EX 徽标（NORMAL 灰底、INSERT 紫、VISUAL 琥珀），并显示已敲的前缀键。支持 h j k l w b e 0 ^ $ gg G（带 count）、dd cc yy、d/c/y + 移动、x p P、i a I A o O、u / Ctrl+R、v / V、`:` 命令行（`:w` `:q` `:wq` `:x` `:<行号>`）、Esc 逐级退出；寄存器跨行保存，重切文档回到 NORMAL。（`docs/vim-normal.png`、`vim-insert.png`、`vim-visual.png`）
 - 插件系统：读 `~/.mayoi/plugins` 下各文件夹的 `plugin.json`（name / displayName / version / description / author），设置「插件」分区列出已安装卡片（字母 tile、版本·作者、描述、启用开关、垃圾桶）、空态、安装卡片与「插件设置」4 项；启用状态写在 `settings.json` 的 `plugins` 键（`{"<name>": {"enabled": false}}`），支持重新加载、打开插件文件夹、选择文件夹安装（xcopy 复制）、两次点击删除（rmdir）。插件命令本身不执行（无 JS 运行时）。（`docs/plugins.png`、`plugins-off.png`、`plugins-empty.png`）
 - 最小化恢复：`WM_SIZE` / `WM_ACTIVATE` / `WM_SHOWWINDOW` / `WM_DPICHANGED` 在窗口过程里被 `PostMessage` 转发进 goose 队列（`0x8002`…`0x8005`），恢复时 `SWP_FRAMECHANGED` + 重建 DIB + 重排 + 重绘，修复「最小化再恢复一片黑」。
+- Markdown 预览：`markdownMode` 决定打开 `.md` 的方式——源代码（默认）/ 实时预览（编辑器 54% + 预览 46%）/ 阅读视图（整块预览）；菜单「查看 › 切换预览 / 切换实时预览 / 在侧边打开预览」与 Ctrl+Shift+V 均可切换。预览逐行解析 `#` 标题（1 级用标题字体）、`> ` 引用（左侧 accent 竖条）、`- * +` 与 `1.` 列表（accent 圆点、缩进）、`- [ ]` / `- [x]` 任务勾选框、``` 围栏代码块（surface 底纹）、`|` 表格（网格线 + 表头底纹 + 按内容分配列宽）、`---` 分割线，普通段落按词折行、超长 token 在字符处硬断并避开 UTF-8 中界；`plain()` 去掉 `**` `*` `` ` `` 与 `[text](url)`，反斜杠只转义 Markdown 标点，Windows 路径不被吃掉；预览可独立滚动（`docs/preview.png`、`preview-side.png`）。
+- 设置生效：`appearance` 切换深/浅两套调色板，`fontSize` / `fontWeight` / `lineHeight` / `fontFamily` 重新生成代码字体与行高（`monospace` 在 GDI 上回落 Consolas），改设置即时生效并落盘。
+- 代码区右侧 overlay 滚动条：仅在内容超出一屏时出现，4px 圆角，位置随滚动比例。
+- 下方面板：四个标签各自有内容——问题「未发现问题。」、输出「输出通道暂无内容。」、终端（`PS ...>` 提示与输出）、调试「调试会话尚未启动，按 F5 开始调试。」。
 - 标签条：42px 高，标签 42+label+42，活动标签 2px accent 顶边与 1px 右边框，图标 16px、关闭按钮 14px、脏标记。
 - 面包屑：`cmd › mayoi › editor.go` 形式，末段为文件图标 + 文件名。
 - 代码区：行高 25、单元格 9px（Consolas 16px + `lfWidth=9`，单次 `TextOut` 即可保持 9px 步进）、行号右缘 `x0+56`、正文起点 `x0+102`、当前行底纹 `#202025`。
@@ -119,12 +124,12 @@ cd C:\work\prj\winhx\mayoi
 
 ## 未完成
 
-- 下方面板（问题/输出/终端/调试）内容与终端命令执行仍为近似；markdown 预览未做。
-- Vim 还差视觉模式的 `J` / `>` / `<` / 缩进等命令；缩进宽度等编辑器选项尚未反作用到渲染（`vimCtrlKeys` 已接：打开后 Ctrl+F/B/R/A/X 交回普通编辑）。
+- 下方面板的问题/输出/调试页只有空态文字，终端是回显而非真正的 PTY（`build.ps1` 之类命令只在外部终端跑）。
+- 自动换行（`wordWrap` / 标签页 Alt+Z）尚未反作用到编辑器绘制，长行仍是横向滚动。
+- Vim 还差视觉模式的 `J` / `>` / `<` / 缩进等命令。
 - 命令面板/全局查找/快速打开有浮层但结果列表与交互未完整跑通。
-- 编辑器右侧滚动条（Mayoi 是滚动时浮现的 overlay 样式）未实现。
-- 本机没有在 PATH 上的 `git.exe`（已下载 MinGit 2.56.1 到 `C:\bin\mingit`，未加入 PATH，程序也不会自行找它）：「初始化仓库」「提交」仍只能给出「未找到 Git」提示。
-- 设置的 63 项已能落盘到 `settings.json`，但字号、主题等尚未反作用到编辑器；`keybindings.json` 底部链接仅作展示，`用户` 范围选择未接文件夹级设置。
+- 预览不解析行内 `**加粗**` / `` `code` `` 的差异化样式（只去掉标记），也不画 mermaid、LaTeX、图片与 `![alt](url)`。
+- 本机 `git.exe` 只在 `C:\bin\mingit`：源代码管理已优先用它（分支、更改、初始化、提交可用），但 Git 菜单里的推送/拉取/储藏等仍未接。
 - 插件只做清单、启停、安装/删除/重载、列表与详情页（点卡片进入：名称、版本·作者、启用开关、目录、说明、插件设置；`docs/plugin-detail.png`）：没有 JS 运行时，插件的命令、`contributes`、格式化/language server 均不执行。
 - 树菜单的「粘贴」恒灰（文件剪贴板未实现）；「在终端中打开」目前仅调用系统终端打开目录。
 - 侧栏/菜单字体用 Segoe UI，参考（Skia）字形更细，近邻放大仍有可见的笔画差异。
