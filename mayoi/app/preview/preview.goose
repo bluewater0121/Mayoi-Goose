@@ -302,6 +302,82 @@ fn wrap(f: u64, x: i32, y: i32, w: i32, s: const u8[:], c: u32, lh: i32, top: i3
     return line_y + lh;
 }
 
+var pv_img_path: u8[>..] = [];
+var pv_img: u64 = 0;
+
+fn md_image_url(s: const u8[:]) -> u8[>..] {
+    var out: u8[>..] = [];
+    let t = trim_start(s);
+    if t + 1 >= s.len || s[t] != '!' || s[t + 1] != '[' { return out; }
+    var i = t + 2;
+    while i < s.len && s[i] != ']' { i++; }
+    if i + 1 >= s.len || s[i + 1] != '(' { return out; }
+    i = i + 2;
+    while i < s.len && s[i] != ')' { out.push(s[i]); i++; }
+    return out;
+}
+
+fn join_dir(dir: const u8[:], tail: const u8[:]) -> u8[>..] {
+    var out: u8[>..] = [];
+    out.append(dir);
+    out.push('/');
+    out.append(tail);
+    return out;
+}
+
+fn doc_dir() -> u8[>..] {
+    var out: u8[>..] = [];
+    if state::cur < 0 || state::docs.len == 0 { return out; }
+    let p = state::docs[state::cur].path;
+    var last: i64 = -1;
+    var i: i64 = 0;
+    while i < p.len {
+        if p[i] == '/' || p[i] == '\\' { last = i; }
+        i++;
+    }
+    if last >= 0 { i = 0; while i < last { out.push(p[i]); i++; } }
+    return out;
+}
+
+// md_image draws the picture of a line that is only ![alt](path), and
+// returns the y after it.
+fn md_image(s: const u8[:], left: i32, y: i32, right: i32, y0: i32, h: i32) -> i32 {
+    let p = theme::pal;
+    let url = md_image_url(s);
+    if url.len == 0 { return y; }
+    if url.len > 4 && url[0] == 'h' && url[1] == 't' { return y; }
+    var path: u8[>..] = [];
+    if url[0] == '/' || (url.len > 2 && url[1] == ':') { path.append(url); }
+    else { path = join_dir(doc_dir(), url[0..url.len]); }
+    if !same_pv_path(pv_img_path[0..pv_img_path.len], path[0..path.len]) {
+        if pv_img != 0 { win::gs_img_free(pv_img); pv_img = 0; }
+        pv_img_path.resize(0);
+        pv_img_path.append(path);
+        pv_img = win::gs_img_load(path[0], path.len as i64);
+    }
+    if pv_img == 0 { return y; }
+    let iw = win::gs_img_w(pv_img) as i32;
+    let ih = win::gs_img_h(pv_img) as i32;
+    if iw <= 0 || ih <= 0 { return y; }
+    var dw = iw;
+    var dh = ih;
+    let avail = right - left;
+    if dw > avail { dh = dh * avail / dw; dw = avail; }
+    if dh > h * 2 / 3 { dw = dw * (h * 2 / 3) / dh; dh = h * 2 / 3; }
+    if y >= y0 && y <= y0 + h && dw > 0 && dh > 0 {
+        win::draw_image(pv_img, left, y, dw, dh);
+    }
+    return y + dh + state::px(10);
+}
+
+fn same_pv_path(a: const u8[:], b: const u8[:]) -> bool {
+    if a.len != b.len { return false; }
+    var i: i64 = 0;
+    while i < a.len { if a[i] != b[i] { return false; } i++; }
+    return true;
+}
+
+
 fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     let p = theme::pal;
     win::fill(x0, y0, w, h, p.editor);
@@ -346,6 +422,13 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
                 win::text_at(state::f_code, left, y, s, p.text);
             }
             y = y + state::px(20);
+            line++;
+            continue;
+        }
+        let iu = md_image_url(s);
+        if iu.len > 0 {
+            y = md_image(s, left, y, right, y0, h);
+            after_blank = false;
             line++;
             continue;
         }
