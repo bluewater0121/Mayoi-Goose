@@ -4,3 +4,4 @@
 
 /mayoi/build/
 .tmp/
+*.obj
