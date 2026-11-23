@@ -104,6 +104,32 @@ fn run(i: i64) {
     if eq(id, "view.appearance.dark") { theme::set_dark(); win::invalidate(); return; }
     if eq(id, "view.appearance.system") { if theme::dark { theme::set_dark(); } else { theme::set_light(); } win::invalidate(); return; }
     if eq(id, "view.theme.mayoi") { theme::set_dark(); win::invalidate(); return; }
+    if eq(id, "view.togglePreview") {
+        state::preview_open = !state::preview_open;
+        state::preview_side = false;
+        state::preview_scroll = 0;
+        win::invalidate();
+        return;
+    }
+    if eq(id, "view.toggleLivePreview") {
+        state::preview_open = !state::preview_open;
+        state::preview_side = false;
+        state::preview_live = state::preview_open;
+        state::preview_scroll = 0;
+        win::invalidate();
+        return;
+    }
+    if eq(id, "view.previewToSide") {
+        state::preview_open = true;
+        state::preview_side = true;
+        state::preview_live = true;
+        state::preview_scroll = 0;
+        win::invalidate();
+        return;
+    }
+    if eq(id, "view.markdownOpen.live") { state::preview_open = true; state::preview_side = false; win::invalidate(); return; }
+    if eq(id, "view.markdownOpen.reading") { state::preview_open = true; state::preview_side = false; win::invalidate(); return; }
+    if eq(id, "view.markdownOpen.source") { state::preview_open = false; win::invalidate(); return; }
     if eq(id, "view.vim") {
         let i = prefs::index_of("vim");
         if i >= 0 {

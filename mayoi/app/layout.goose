@@ -68,7 +68,37 @@ fn open_path(path: const u8[:]) -> bool {
     state::docs[i].scroll = 0;
     show_welcome = false;
     set_title(state::docs[i].name);
+    // a Markdown file opens with the rendered preview beside the source, the
+    // way the reference does, and keeps it in step with edits
+    if is_markdown(path) {
+        state::preview_open = true;
+        state::preview_side = true;
+        state::preview_live = true;
+        state::preview_scroll = 0;
+    }
     return true;
+}
+
+fn is_markdown(path: const u8[:]) -> bool {
+    let n = path.len;
+    if n >= 3 {
+        if path[n - 3] == '.' {
+            let a = path[n - 2];
+            let b = path[n - 1];
+            if (a == 'm' || a == 'M') && (b == 'd' || b == 'D') { return true; }
+        }
+    }
+    if n >= 9 {
+        if path[n - 9] == '.' {
+            if (path[n - 8] == 'm' || path[n - 8] == 'M') && (path[n - 7] == 'a' || path[n - 7] == 'A') &&
+               (path[n - 6] == 'r' || path[n - 6] == 'R') && (path[n - 5] == 'k' || path[n - 5] == 'K') &&
+               (path[n - 4] == 'd' || path[n - 4] == 'D') && (path[n - 3] == 'o' || path[n - 3] == 'O') &&
+               (path[n - 2] == 'w' || path[n - 2] == 'W') && (path[n - 1] == 'n' || path[n - 1] == 'N') {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 fn set_title(name: const u8[:]) {

@@ -208,6 +208,15 @@ fn click_editor(mx: i32, my: i32, keep: bool) {
 }
 
 fn wheel(notches: i32) {
+    if state::preview_open && state::mx >= state::pv_x0 && state::mx < state::pv_x0 + state::pv_w
+        && state::my >= state::pv_y0 && state::my < state::pv_y0 + state::pv_h {
+        var ps = state::preview_scroll - notches * 48;
+        if ps < 0 { ps = 0; }
+        if ps > state::pv_max { ps = state::pv_max; }
+        state::preview_scroll = ps;
+        win::invalidate();
+        return;
+    }
     if state::cur < 0 { return; }
     let d .= state::docs[state::cur];
     var s = d.scroll - notches * 3;

@@ -71,6 +71,12 @@ var query_sel: i32 = 0;
 var overlay_sel: i32 = 0;
 var overlay_top: i32 = 0;
 var panel_tab: i32 = 0;
+var preview_open: bool = false;   // the markdown preview shows
+var preview_side: bool = false;   // beside the editor rather than in its place
+var preview_live: bool = false;   // updates as the text changes (it always does)
+var preview_scroll: i32 = 0;
+var pv_x0: i32 = 0; var pv_y0: i32 = 0; var pv_w: i32 = 0; var pv_h: i32 = 0;
+var pv_total: i32 = 0; var pv_max: i32 = 0;
 var blink: bool = true;
 var status_msg: u8[>..] = [];
 var status_until: i64 = 0;
@@ -139,6 +145,7 @@ let HIT_PREFS_RESET = 45;
 let HIT_PREFS_PL_RELOAD = 46; let HIT_PREFS_PL_FOLDER = 47; let HIT_PREFS_PL_TOGGLE = 48;
 let HIT_PREFS_PL_REMOVE = 49; let HIT_PREFS_PL_INSTALL = 50; let HIT_PREFS_PL_CARD = 51;
 let HIT_PREFS_PL_BACK = 52;
+let HIT_PREVIEW = 53;
 
 fn hit(kind: i32, x: i32, y: i32, w: i32, h: i32, arg: i64) -> Hit {
     return Hit { x, y, w, h, kind, arg };
@@ -167,6 +174,8 @@ fn right_x() -> i32 {
 
 fn top_y() -> i32 { return title_h + tab_h + crumb_h; }
 fn cell(v: i32) -> i32 { return v * cell_w; }
+
+
 
 
 

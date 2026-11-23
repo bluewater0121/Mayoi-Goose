@@ -17,7 +17,8 @@ import app.status;
 import editor.editor;
 import app.menu.paint;
 import app.ctxmenu;
-import app.prefs.paint;// --- frame -------------------------------------------------------------------
+import app.prefs.paint;
+import app.preview.preview;// --- frame -------------------------------------------------------------------
 
 fn paint() {
     state::hits.resize(0);
@@ -37,6 +38,13 @@ fn paint() {
     if state::docs.len == 0 || state::cur < 0 {
         win::fill(x0, state::title_h, state::W - x0, bottom - state::title_h, p.editor);
         editor::paint(x0, state::title_h, state::W - x0, bottom - state::title_h);
+    } else if state::preview_open && state::preview_side {
+        let pw = (state::W - x0) * 46 / 100;
+        editor::paint(x0, top, state::W - x0 - pw - 1, bottom - top);
+        win::fill(state::W - pw - 1, top, 1, bottom - top, p.border);
+        preview::paint(state::W - pw, top, pw, bottom - top);
+    } else if state::preview_open {
+        preview::paint(x0, top, state::W - x0, bottom - top);
     } else {
         editor::paint(x0, top, state::W - x0, bottom - top);
     }

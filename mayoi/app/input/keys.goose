@@ -68,6 +68,20 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
         if vk == input::VK_A { let d .= state::docs[state::cur]; d.sel_a = 0; d.sel_b = d.len; input::ensure_visible(); win::invalidate(); return true; }
         if vk == input::VK_C { input::copy(); return true; }
         if vk == input::VK_X { input::copy(); input::backspace(); return true; }
+        if vk == input::VK_V && shift {
+            state::preview_open = !state::preview_open;
+            state::preview_side = false;
+            state::preview_scroll = 0;
+            win::invalidate();
+            return true;
+        }
+        if vk == input::VK_V && alt {
+            state::preview_open = true;
+            state::preview_side = true;
+            state::preview_live = true;
+            win::invalidate();
+            return true;
+        }
         if vk == input::VK_V { input::paste(); return true; }
         if vk == input::VK_Z { text::undo_edit(); syntax::invalidate(); input::ensure_visible(); win::invalidate(); return true; }
         if vk == input::VK_Y { text::redo_edit(); syntax::invalidate(); input::ensure_visible(); win::invalidate(); return true; }
