@@ -13,6 +13,8 @@ import editor.text;
 import editor.syntax;
 import explore.tree;
 import app.prefs.model;
+import app.prefs.store;
+import app.plugins.model;
 import .model;
 
 fn eq(a: const u8[:], b: const u8[:]) -> bool {
@@ -102,6 +104,21 @@ fn run(i: i64) {
     if eq(id, "view.appearance.dark") { theme::set_dark(); win::invalidate(); return; }
     if eq(id, "view.appearance.system") { if theme::dark { theme::set_dark(); } else { theme::set_light(); } win::invalidate(); return; }
     if eq(id, "view.theme.mayoi") { theme::set_dark(); win::invalidate(); return; }
+    if eq(id, "view.vim") {
+        let i = prefs::index_of("vim");
+        if i >= 0 {
+            var on = prefs::bool_of("vim");
+            let v: const u8[:] = if on { "false" } else { "true" };
+            prefs::set(i, v);
+            prefs::store_save();
+            if on { app::set_status("Vim 模式已关闭"); } else { app::set_status("Vim 模式已打开"); }
+            win::invalidate();
+            return;
+        }
+        app::set_status("Vim 模式需要设置里有 vim 项");
+        win::invalidate();
+        return;
+    }
     // go
     if eq(id, "go.quickOpen") { app::overlay_open(2); win::invalidate(); return; }
     if eq(id, "go.commands") { app::overlay_open(1); win::invalidate(); return; }
@@ -110,5 +127,18 @@ fn run(i: i64) {
     if eq(id, "go.prevTab") { input::next_tab(-1); return; }
     // git
     if eq(id, "git.refresh") { chrome::reload_scm(); win::invalidate(); return; }
+    if eq(id, "plugin.install") {
+        var buf: u8[>..] = [];
+        buf.resize(4096, 0);
+        let n = win::pick_folder(win::hwnd, buf[0], 4096);
+        if n > 0 {
+            buf.resize(n);
+            if plug::install(buf[0..buf.len]) { app::set_status("插件已安装"); }
+            else { app::set_status("无法安装插件"); }
+        }
+        win::invalidate();
+        return;
+    }
+    if eq(id, "plugin.reload") { plug::reload(); app::set_status("插件已重新加载"); win::invalidate(); return; }
     unfilled(i);
 }

@@ -468,6 +468,7 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
     }
     if mode == M_INSERT { return false; }
     if ctrl {
+        if prefs::bool_of("vimCtrlKeys") && (vk == 70 || vk == 66 || vk == 82 || vk == 65 || vk == 88) { return false; }
         if vk == 82 { text::redo_edit(); after_change(); return true; }
         return false;
     }
