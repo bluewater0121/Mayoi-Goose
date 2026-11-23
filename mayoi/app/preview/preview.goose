@@ -106,9 +106,11 @@ fn bars(s: const u8[:]) -> i32 {
 // cell_range returns the [start,end) of cell idx in a | a | b | row.
 fn cell_range(s: const u8[:], idx: i32, start: i64&, end: i64&) {
     var n: i32 = 0;
-    var i = trim_start(s);
-    var from = i + 1;
-    while i < s.len {
+    var a = trim_start(s);
+    var b = trim_end(s);
+    var i = a + 1;
+    var from = a + 1;
+    while i < b {
         if s[i] == '|' {
             if n == idx { start = from; end = i; return; }
             n++;
@@ -116,7 +118,7 @@ fn cell_range(s: const u8[:], idx: i32, start: i64&, end: i64&) {
         }
         i++;
     }
-    if n == idx { start = from; end = trim_end(s); return; }
+    if n == idx { start = from; end = b; return; }
     start = 0;
     end = 0;
 }
@@ -157,14 +159,21 @@ fn plain(s: const u8[:]) -> u8[>..] {
         if c == '`' { i++; continue; }
         if c == '[' {
             var j = i + 1;
-            while j < s.len && s[j] != ']' { out.push(s[j]); j++; }
+            var inner: u8[>..] = [];
+            while j < s.len && s[j] != ']' { inner.push(s[j]); j++; }
             if j < s.len && j + 1 < s.len && s[j + 1] == '(' {
                 var k = j + 2;
                 while k < s.len && s[k] != ')' { k++; }
+                var q: i64 = 0;
+                while q < inner.len { out.push(inner[q]); q++; }
                 i = if k < s.len { k + 1 } else { j + 1 };
                 continue;
             }
-            i = j;
+            out.push('[');
+            var q2: i64 = 0;
+            while q2 < inner.len { out.push(inner[q2]); q2++; }
+            out.push(']');
+            i = if j < s.len { j + 1 } else { j };
             continue;
         }
         out.push(c);
@@ -244,7 +253,8 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     while line < n {
         let raw = line_text(line);
         let s = raw[0..raw.len];
-        if has_at(s, trim_start(s), "```") {
+        let a0 = trim_start(s);
+        if a0 + 2 < s.len && s[a0] == '`' && s[a0 + 1] == '`' && s[a0 + 2] == '`' {
             if in_code {
                 in_code = false;
                 y = y + state::px(8);
@@ -261,7 +271,7 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
             let body = s[0..b];
             if y >= y0 && y + state::px(20) <= y0 + h {
                 win::fill(left - state::px(10), y - state::px(2), w - padx * 2 + state::px(20), state::px(21), p.surface);
-                fit(state::f_code_small, left, y, right - left, body, p.text);
+                win::text_at(state::f_code, left, y, s, p.text);
             }
             y = y + state::px(20);
             line++;
@@ -417,10 +427,30 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
             var i = a;
             if mk == 1 { while i < s.len && s[i] != ' ' { i++; } } else { i = a + 1; }
             while i < s.len && is_space(s[i]) { i++; }
-            let body = plain(s[i..trim_end(s)]);
+            let raw = s[i..trim_end(s)];
+            let body = plain(raw);
             let lh = win::th(state::f_ui) + state::px(5);
             if y >= y0 && y <= y0 + h {
                 win::text_at(state::f_ui, left + state::px(4), y, "•", p.accent);
+            }
+            // a task list item: "- [ ] text" or "- [x] text"
+            if raw.len >= 4 && raw[0] == '[' && raw[2] == ']' && (raw[3] == ' ' || raw[1] == 'x' || raw[1] == 'X') {
+                let box = state::px(12);
+                let by = y + (lh - box) / 2;
+                if y >= y0 && y <= y0 + h {
+                    win::fill(left + state::px(20), by, box, box, p.border);
+                    win::fill(left + state::px(20) + 1, by + 1, box - 2, box - 2, p.editor);
+                    if raw[1] == 'x' || raw[1] == 'X' {
+                        win::fill(left + state::px(20) + 3, by + 3, box - 6, box - 6, p.accent);
+                    }
+                }
+                var rest: i64 = 3;
+                while rest < raw.len && is_space(raw[rest]) { rest++; }
+                let label = plain(raw[rest..raw.len]);
+                y = wrap(state::f_ui, left + state::px(20) + box + state::px(8), y, right - left - state::px(20) - box - state::px(12),
+                         label[0..label.len], p.text, lh, y0, y0 + h);
+                line++;
+                continue;
             }
             y = wrap(state::f_ui, left + state::px(20), y, right - left - state::px(24), body[0..body.len], p.text, lh, y0, y0 + h);
             line++;

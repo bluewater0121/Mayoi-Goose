@@ -130,8 +130,11 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
         var k: i64 = 0;
         while k < spans.len {
             let sp = spans[k];
-            let a = ls + sp.a as i64;
-            let b = ls + sp.b as i64;
+            var a = ls + sp.a as i64;
+            var b = ls + sp.b as i64;
+            if a > le { a = le; }
+            if b > le { b = le; }
+            if b < a { b = a; }
             if a > pos { draw_segment(state::cur, pos, a, theme::PLAIN, tx, row_y, text::col_cells(state::cur, pos)); }
             if b > a { draw_segment(state::cur, a, b, sp.k, tx, row_y, text::col_cells(state::cur, a)); }
             if b > pos { pos = b; }
