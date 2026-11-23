@@ -137,7 +137,8 @@ let HIT_PREFS_SEARCH = 39; let HIT_PREFS_TOGGLE = 40; let HIT_PREFS_STEP = 41;
 let HIT_PREFS_ENUM = 42; let HIT_PREFS_OPT = 43; let HIT_PREFS_TEXT = 44;
 let HIT_PREFS_RESET = 45;
 let HIT_PREFS_PL_RELOAD = 46; let HIT_PREFS_PL_FOLDER = 47; let HIT_PREFS_PL_TOGGLE = 48;
-let HIT_PREFS_PL_REMOVE = 49; let HIT_PREFS_PL_INSTALL = 50;
+let HIT_PREFS_PL_REMOVE = 49; let HIT_PREFS_PL_INSTALL = 50; let HIT_PREFS_PL_CARD = 51;
+let HIT_PREFS_PL_BACK = 52;
 
 fn hit(kind: i32, x: i32, y: i32, w: i32, h: i32, arg: i64) -> Hit {
     return Hit { x, y, w, h, kind, arg };

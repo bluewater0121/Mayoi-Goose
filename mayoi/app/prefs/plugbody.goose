@@ -84,6 +84,7 @@ fn plugin_row(i: i32, x: i32, y: i32, w: i32) {
     chrome::icon_at(21, dx, y + (h - state::px(14)) / 2, state::px(14),
         if plug::confirm == i { p.modified } else { if prefs::hover == i { p.text } else { p.faint } });
     state::add_hit(state::HIT_PREFS_PL_REMOVE, dx - state::px(14), y + state::px(10), state::px(44), state::px(38), i);
+    state::add_hit(state::HIT_PREFS_PL_CARD, x, y, w - state::px(150), h, i);
 }
 
 fn install_card(x: i32, y: i32, w: i32) {
@@ -108,7 +109,65 @@ fn install_card(x: i32, y: i32, w: i32) {
     }
 }
 
+// plugin_detail shows one plugin in place of the list, as a row of the
+// list opens it: what it is, where it lives, whether it runs, and the
+// settings it declares.
+fn plugin_detail(i: i32) {
+    let p = theme::pal;
+    let x = prefs::card_x;
+    let w = prefs::card_w;
+    var y = prefs::rows_y - prefs::scroll;
+    let top = prefs::rows_y;
+
+    ghost(x, y, "‹ 插件", state::HIT_PREFS_PL_BACK);
+    y = y + state::px(40);
+
+    pf(state::f_prefs_b, x, y, plug::title(i), p.text);
+    y = y + state::px(26);
+
+    var sub: u8[>..] = [];
+    if plug::ver(i).len > 0 { sub.append("v"); sub.append(plug::ver(i)); }
+    if plug::author(i).len > 0 {
+        if sub.len > 0 { sub.append(" · "); }
+        sub.append(plug::author(i));
+    }
+    pf(state::f_prefs, x, y, sub[0..sub.len], p.muted);
+    y = y + state::px(26);
+
+    win::round_rect(x, y, w, state::px(96), state::px(6), state::px(6), p.surface);
+    pf(state::f_prefs, x + state::px(16), y + state::px(12),
+        if plug::enabled(i) { "已启用" } else { "已停用" },
+        if plug::enabled(i) { p.text } else { p.muted });
+    let sw = state::px(32);
+    let sx = x + w - sw - state::px(24);
+    mini_switch(sx, y + state::px(10), plug::enabled(i));
+    state::add_hit(state::HIT_PREFS_PL_TOGGLE, sx - state::px(10), y + state::px(6),
+        sw + state::px(20), state::px(34), i);
+    let label2: const u8[:] = if plug::confirm == i { "再次点击删除" } else { "删除插件" };
+    ghost(x + w - win::measure(state::f_prefs, label2) - state::px(22) - state::px(60), y + state::px(52),
+        label2, state::HIT_PREFS_PL_REMOVE);
+    pfit(state::f_prefs, x + state::px(16), y + state::px(40), plug::dir_of(i), w - state::px(28), p.faint);
+    y = y + state::px(96) + state::px(22);
+
+    section_label(x, y, "说明", 0);
+    y = y + state::px(24);
+    draw_wrap(state::f_prefs, x, y, plug::desc(i), w - state::px(24), state::px(19), p.muted);
+    y = y + state::px(60) + state::px(18);
+
+    section_label(x, y, "插件设置", 0);
+    y = y + state::px(26);
+    pf(state::f_prefs, x, y, "该插件的清单没有声明设置项。", p.faint);
+
+    let content = y + prefs::scroll - top + state::px(20);
+    prefs::total_rows = content;
+    let view = prefs::rows_b - top;
+    prefs::shown_rows = view;
+    prefs::max_scroll = content - view;
+    if prefs::max_scroll < 0 { prefs::max_scroll = 0; }
+}
+
 fn plugins_body() {
+    if prefs::detail >= 0 { plugin_detail(prefs::detail); return; }
     let p = theme::pal;
     let x = prefs::card_x;
     let w = prefs::card_w;

@@ -285,6 +285,7 @@ fn ver(i: i32) -> const u8[:] { return items[i].ver[0..items[i].ver.len]; }
 fn desc(i: i32) -> const u8[:] { return items[i].desc[0..items[i].desc.len]; }
 fn author(i: i32) -> const u8[:] { return items[i].author[0..items[i].author.len]; }
 fn enabled(i: i32) -> bool { return items[i].enabled; }
+fn dir_of(i: i32) -> const u8[:] { return items[i].dir[0..items[i].dir.len]; }
 
 fn toggle(i: i32) {
     items[i].enabled = !items[i].enabled;

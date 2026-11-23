@@ -125,6 +125,6 @@ cd C:\work\prj\winhx\mayoi
 - 编辑器右侧滚动条（Mayoi 是滚动时浮现的 overlay 样式）未实现。
 - 本机没有在 PATH 上的 `git.exe`（已下载 MinGit 2.56.1 到 `C:\bin\mingit`，未加入 PATH，程序也不会自行找它）：「初始化仓库」「提交」仍只能给出「未找到 Git」提示。
 - 设置的 63 项已能落盘到 `settings.json`，但字号、主题等尚未反作用到编辑器；`keybindings.json` 底部链接仅作展示，`用户` 范围选择未接文件夹级设置。
-- 插件只做清单、启停、安装/删除/重载与设置页：没有 JS 运行时，插件的命令、`contributes`、格式化/language server 均不执行；插件详情页（`prefsplugindetail.go`）未做。
+- 插件只做清单、启停、安装/删除/重载、列表与详情页（点卡片进入：名称、版本·作者、启用开关、目录、说明、插件设置；`docs/plugin-detail.png`）：没有 JS 运行时，插件的命令、`contributes`、格式化/language server 均不执行。
 - 树菜单的「粘贴」恒灰（文件剪贴板未实现）；「在终端中打开」目前仅调用系统终端打开目录。
 - 侧栏/菜单字体用 Segoe UI，参考（Skia）字形更细，近邻放大仍有可见的笔画差异。

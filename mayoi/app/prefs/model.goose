@@ -33,6 +33,7 @@ var combo: i32 = -1;        // the field whose choices show, -1 for none
 var edit: i32 = -1;         // the field whose text has the keyboard, -1 for none
 var edit_buf: u8[>..] = [];
 var hover: i32 = -1;        // the field under the pointer
+var detail: i32 = -1;       // the plugin the Plugins page shows in detail, -1 for the list
 
 let SEC_COUNT = 11;
 
@@ -187,6 +188,7 @@ fn open_at(sec: i32) {
     combo = -1;
     edit = -1;
     hover = -1;
+    detail = -1;
 }
 
 fn close() {
@@ -194,6 +196,7 @@ fn close() {
     combo = -1;
     edit = -1;
     hover = -1;
+    detail = -1;
 }
 
 fn same(a: const u8[:], b: const u8[:]) -> bool {

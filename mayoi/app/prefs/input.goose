@@ -73,6 +73,7 @@ fn click(x: i32, y: i32) {
         prefs::scroll = 0;
         prefs::edit = -1;
         prefs::combo = -1;
+        prefs::detail = -1;
         return;
     }
     if k == state::HIT_PREFS_SEARCH {
@@ -143,12 +144,23 @@ fn click(x: i32, y: i32) {
         prefs::pick_and_install();
         return;
     }
+    if k == state::HIT_PREFS_PL_CARD {
+        prefs::detail = h.arg as i32;
+        prefs::scroll = 0;
+        return;
+    }
+    if k == state::HIT_PREFS_PL_BACK {
+        prefs::detail = -1;
+        prefs::scroll = 0;
+        return;
+    }
 }
 
 fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
     if vk == input::VK_ESC {
         if prefs::combo >= 0 { prefs::combo = -1; return true; }
         if prefs::edit != -1 { prefs::edit = -1; return true; }
+        if prefs::detail >= 0 { prefs::detail = -1; prefs::scroll = 0; return true; }
         prefs::store_save();
         prefs::close();
         return true;
