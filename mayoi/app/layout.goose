@@ -16,6 +16,7 @@ import app.sidebar;
 import app.tabs;
 import app.status;
 import editor.editor;var term: u8[>..] = [];
+var term_cwd: u8[>..] = [];     // where the next command of the panel runs
 var output: u8[>..] = [];       // the Output channel: what commands told us
 var term_input: u8[>..] = [];
 var show_welcome: bool = true;

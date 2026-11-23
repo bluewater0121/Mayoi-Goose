@@ -78,7 +78,8 @@ fn term_run() {
     var buf: u8[>..] = [];
     buf.resize(65536, 0);
     var cwd: u8[>..] = [];
-    if state::root.len > 0 { cwd.append(state::root); } else { cwd.append("."); }
+    if term_cwd.len > 0 { cwd.append(term_cwd); }
+    else if state::root.len > 0 { cwd.append(state::root); } else { cwd.append("."); }
     let n = win::gs_run_cmd(line[0], line.len as i64, buf[0], 65536, cwd[0], cwd.len as i64);
     var j: i64 = 0;
     while j < n && j < 65000 {
@@ -178,7 +179,11 @@ fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {
     }
     // prompt
     var prompt: u8[>..] = [];
-    prompt.append("PS C:\\work\\prj\\winhx> ");
+    prompt.append("PS ");
+    if term_cwd.len > 0 { prompt.append(term_cwd); }
+    else if state::root.len > 0 { prompt.append(state::root); }
+    else { prompt.append("C:\\work"); }
+    prompt.append("> ");
     win::text_at(state::f_code_small, x0 + state::px(16), ty, prompt, p.accent);
     let pw = win::measure(state::f_code_small, prompt);
     win::text_at(state::f_code_small, x0 + state::px(16) + pw, ty, term_input, p.text);

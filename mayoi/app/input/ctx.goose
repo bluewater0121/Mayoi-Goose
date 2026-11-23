@@ -130,17 +130,23 @@ fn ctx_run(act: i32) {
         win::invalidate();
         return;
     }
-    if act == 3 || act == 4 {           // reveal / terminal
-        var cmd: u8[>..] = [];
-        if act == 3 {
-            cmd.append("explorer ");
-            if chrome::ctx_is_dir || path.len == 0 { cmd.push('"'); cmd.append(dir); cmd.push('"'); }
-            else { cmd.append("/select,\""); cmd.append(path); cmd.push('"'); }
-        } else {
-            cmd.append("start \"\" cmd /K cd /d \"");
-            cmd.append(dir);
-            cmd.push('"');
+    if act == 3 || act == 4 {           // reveal / open a terminal here
+        if act == 4 {
+            app::term_cwd.resize(0);
+            app::term_cwd.append(dir);
+            state::panel_open = true;
+            state::panel_tab = 2;
+            state::focus = 2;
+            app::layout();
+            chrome::ctx_close();
+            win::invalidate();
+            app::set_status("终端已在本文件夹打开");
+            return;
         }
+        var cmd: u8[>..] = [];
+        cmd.append("explorer ");
+        if chrome::ctx_is_dir || path.len == 0 { cmd.push('"'); cmd.append(dir); cmd.push('"'); }
+        else { cmd.append("/select,\""); cmd.append(path); cmd.push('"'); }
         var out: u8[>..] = [];
         out.resize(1024, 0);
         var cwd: u8[>..] = [];
