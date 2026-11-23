@@ -29,6 +29,21 @@ fn eq(a: const u8[:], b: const u8[:]) -> bool {
 
 fn relay(cmd: const u8[:]) -> bool { return eq(cmd, "file.save"); }
 
+// run_label runs the item whose label the command palette shows, the way
+// picking a command from the list runs it.
+fn run_label(label: const u8[:]) -> bool {
+    var i: i64 = 0;
+    while i < menu::items.len as i64 {
+        let it = menu::items[i];
+        if it.flags != menu::SEPARATOR && eq(it.label[0..it.label.len], label) {
+            run(i);
+            return true;
+        }
+        i++;
+    }
+    return false;
+}
+
 // unfilled(i) says so, rather than pretending the command ran.
 fn unfilled(i: i64) {
     var msg: u8[>..] = [];
@@ -172,6 +187,18 @@ fn run(i: i64) {
     if eq(id, "go.prevTab") { input::next_tab(-1); return; }
     // git
     if eq(id, "git.refresh") { chrome::reload_scm(); win::invalidate(); return; }
+    if eq(id, "git.commit") { chrome::scm_commit(); win::invalidate(); return; }
+    if eq(id, "git.commitPush") { chrome::scm_commit(); chrome::git_push(); win::invalidate(); return; }
+    if eq(id, "git.amend") { chrome::git_amend(); win::invalidate(); return; }
+    if eq(id, "git.undoCommit") { chrome::git_undo_commit(); win::invalidate(); return; }
+    if eq(id, "git.stageAll") { chrome::git_stage_all(); win::invalidate(); return; }
+    if eq(id, "git.stageFile") { chrome::git_stage_all(); win::invalidate(); return; }
+    if eq(id, "git.unstageFile") { chrome::git_unstage_all(); win::invalidate(); return; }
+    if eq(id, "git.fetch") { chrome::git_fetch(); win::invalidate(); return; }
+    if eq(id, "git.pull") { chrome::git_pull(); win::invalidate(); return; }
+    if eq(id, "git.push") { chrome::git_push(); win::invalidate(); return; }
+    if eq(id, "git.stash") { chrome::git_stash(false); win::invalidate(); return; }
+    if eq(id, "git.stashUntracked") { chrome::git_stash(true); win::invalidate(); return; }
     if eq(id, "plugin.install") {
         var buf: u8[>..] = [];
         buf.resize(4096, 0);

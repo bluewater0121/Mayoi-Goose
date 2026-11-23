@@ -398,6 +398,47 @@ fn visual_key(ch: u8) {
     if ch == 'l' { input::col_move(1, true); return; }
     if ch == 'j' { input::line_move(1, true); return; }
     if ch == 'k' { input::line_move(-1, true); return; }
+    if ch == 'J' {
+        let a = text::sel_min(state::cur);
+        let b = text::sel_max(state::cur);
+        let l1, c1 = text::line_col(a);
+        let l2, c2 = text::line_col(b);
+        var ln = l2;
+        while ln > l1 {
+            ln--;
+            let e = text::line_end(ln);
+            if e < state::docs[state::cur].len && state::arena[state::docs[state::cur].off + e] == '\n' {
+                text::replace(state::cur, e, e + 1, " ", 0);
+            }
+        }
+        text::set_caret(state::cur, a, false);
+        after_change();
+        reset();
+        return;
+    }
+    if ch == '>' || ch == '<' {
+        let a = text::sel_min(state::cur);
+        let b = text::sel_max(state::cur);
+        let l1, c1 = text::line_col(a);
+        let l2, c2 = text::line_col(b);
+        var ln = l2 + 1;
+        while ln > l1 {
+            ln--;
+            let s = text::line_start(ln);
+            if ch == '>' {
+                text::insert_at(state::cur, s, "    ", 0);
+            } else {
+                var n: i64 = 0;
+                while n < 4 && s + n < state::docs[state::cur].len &&
+                      state::arena[state::docs[state::cur].off + s + n] == ' ' { n++; }
+                if n > 0 { text::delete_range(state::cur, s, s + n, 0); }
+            }
+        }
+        text::set_caret(state::cur, text::line_start(l1), false);
+        after_change();
+        reset();
+        return;
+    }
     if ch == 'd' || ch == 'y' || ch == 'c' {
         let a = text::sel_min(state::cur);
         var b = text::sel_max(state::cur);

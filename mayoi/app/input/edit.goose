@@ -53,6 +53,15 @@ fn typed(b: const u8[:]) {
 
 fn char_typed(c: u16) {
     if state::overlay != 0 { input::overlay_char(c); return; }
+    if state::focus == 2 && state::panel_open && state::panel_tab == 2 {
+        if c == 8 {
+            if app::term_input.len > 0 { app::term_input.resize(app::term_input.len - 1); }
+        } else if c >= 32 && c < 127 {
+            if app::term_input.len < 500 { app::term_input.push(c as u8); }
+        }
+        win::invalidate();
+        return;
+    }
     if state::cur < 0 { return; }
     var b: u8[>..] = [];
     if c < 0x80 { b.push(c as u8); }

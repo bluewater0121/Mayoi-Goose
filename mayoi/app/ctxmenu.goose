@@ -18,6 +18,7 @@ var ctx_where: i32 = 0;          // 1 a tree row, 2 the tree's blank space, 3 th
 var ctx_row: i32 = -1;
 var ctx_path: u8[>..] = [];
 var ctx_dir: u8[>..] = [];
+var ctx_clip: u8[>..] = [];      // the file or folder a paste would copy
 var ctx_is_dir: bool = false;
 var ctx_items: CtxItem[>..] = [];
 
@@ -106,7 +107,7 @@ fn ctx_open_tree(i: i32, x: i32, y: i32) {
     ctx_add("在终端中打开", 4, true);
     ctx_sep();
     ctx_add("复制", 5, true);
-    ctx_add("粘贴", 6, false);
+    ctx_add("粘贴", 6, ctx_clip.len > 0);
     ctx_sep();
     ctx_add("复制路径", 7, true);
     ctx_add("复制相对路径", 8, true);
@@ -130,7 +131,7 @@ fn ctx_open_tree_blank(x: i32, y: i32) {
     ctx_add("在终端中打开", 4, true);
     ctx_sep();
     ctx_add("复制", 5, true);
-    ctx_add("粘贴", 6, false);
+    ctx_add("粘贴", 6, ctx_clip.len > 0);
     ctx_sep();
     ctx_add("复制路径", 7, true);
     ctx_add("复制相对路径", 8, true);

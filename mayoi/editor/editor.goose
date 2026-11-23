@@ -125,6 +125,20 @@ fn paint_wrapped(x0: i32, y0: i32, w: i32, h: i32) {
     }
 }
 
+fn cells_between(i: i32, a: i64, b: i64) -> i32 {
+    var n: i32 = 0;
+    var p = a;
+    while p < b {
+        let c = state::arena[state::docs[i].off + p];
+        if c == '\t' { n = n + 4; }
+        else if (c & 0xF8) == 0xF0 { n = n + 2; }
+        else if (c & 0xF0) == 0xE0 { n = n + 2; }
+        else { n = n + 1; }
+        p = p + u8_len(i, p);
+    }
+    return n;
+}
+
 fn draw_wrap_row(x0: i32, y0: i32, w: i32, h: i32, line: i32, vis: i32, a: i64, b: i64,
                  col0: i32, cells: i32, first: bool, caret_line: i32, caret_col: i64,
                  tx: i32, gx_right: i32, lh: i32) {
@@ -145,8 +159,38 @@ fn draw_wrap_row(x0: i32, y0: i32, w: i32, h: i32, line: i32, vis: i32, a: i64, 
                      if line == caret_line { p.gutter_now } else { p.gutter });
     }
     if end > a {
-        win::text_at(state::f_code, tx, y + (lh - win::th(state::f_code)) / 2,
-                     state::arena[d.off + a .. d.off + end], p.text);
+        // keep the line's syntax colours inside each wrapped row
+        let ls = text::line_start(line);
+        let le = text::line_end(line);
+        var spans: syntax::Span[>..] = [];
+        let st = syntax::state_at(state::cur, line);
+        syntax::lex_line(state::cur, ls, le, st, spans);
+        var pos = a;
+        var k: i64 = 0;
+        while k < spans.len {
+            let sp = spans[k];
+            var sa = ls + sp.a as i64;
+            var sb = ls + sp.b as i64;
+            if sb > le { sb = le; }
+            if sb <= a || sa >= end { k++; continue; }
+            if sa < a { sa = a; }
+            if sb > end { sb = end; }
+            if sa > pos {
+                draw_segment(state::cur, pos, sa, theme::PLAIN, tx,
+                             y + (lh - win::th(state::f_code)) / 2, col0 + cells_between(state::cur, a, pos));
+            }
+            if sb > sa {
+                draw_segment(state::cur, sa, sb, sp.k, tx,
+                             y + (lh - win::th(state::f_code)) / 2, col0 + cells_between(state::cur, a, sa));
+            }
+            if sb > pos { pos = sb; }
+            k++;
+        }
+        if end > pos {
+            draw_segment(state::cur, pos, end, theme::PLAIN, tx,
+                         y + (lh - win::th(state::f_code)) / 2, col0 + cells_between(state::cur, a, pos));
+        }
+        spans.resize(0);
     }
     if line == caret_line && caret_col >= col0 && caret_col <= col0 + cells {
         let cx = tx + (caret_col - col0) as i32 * state::cell_w;

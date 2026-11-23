@@ -198,7 +198,79 @@ fn line_text(line: i32) -> u8[>..] {
     return out;
 }
 
-// wrap draws a text within w, breaking at spaces, and returns the y after it.
+fn ulen(s: const u8[:], i: i64) -> i64 {
+    let c = s[i];
+    if (c & 0xF8) == 0xF0 { return 4; }
+    if (c & 0xF0) == 0xE0 { return 3; }
+    if (c & 0xE0) == 0xC0 { return 2; }
+    return 1;
+}
+
+// rich_line lays out one paragraph keeping its inline marks: **bold**, `code`
+// (surface chip), and [text](url) drawn as a link. It breaks at spaces and at
+// the character that overflows, like wrap does.
+fn rich_line(x: i32, y: i32, w: i32, s: const u8[:], c: u32, lh: i32, top: i32, bot: i32) -> i32 {
+    let p = theme::pal;
+    if s.len == 0 { return y + lh; }
+    let right = x + w - state::px(6);
+    var i: i64 = 0;
+    var cx = x;
+    var cy = y;
+    var bold = false;
+    var code = false;
+    var link_end: i64 = -1;
+    var link_skip: i64 = -1;
+    while i < s.len {
+        if i == link_end {
+            i = link_skip;
+            link_end = -1;
+            link_skip = -1;
+            continue;
+        }
+        let c0 = s[i];
+        if link_end < 0 {
+            if c0 == '*' && i + 1 < s.len && s[i + 1] == '*' { bold = !bold; i = i + 2; continue; }
+            if c0 == '`' { code = !code; i = i + 1; continue; }
+            if c0 == '[' && !code {
+                var j = i + 1;
+                while j < s.len && s[j] != ']' { j++; }
+                if j < s.len && j + 1 < s.len && s[j + 1] == '(' {
+                    var k = j + 2;
+                    while k < s.len && s[k] != ')' { k++; }
+                    link_end = j;
+                    link_skip = if k < s.len { k + 1 } else { j + 1 };
+                    i = i + 1;
+                    continue;
+                }
+                i = i + 1;
+                continue;
+            }
+            if c0 == '\\' && i + 1 < s.len {
+                let e = s[i + 1];
+                if e == '*' || e == '_' || e == '`' || e == '[' || e == ']' { i = i + 1; }
+            }
+        }
+        let n = ulen(s, i);
+        let f = if code { state::f_code_small } else if bold { state::f_ui_b } else { state::f_ui };
+        let ch = s[i..i + n];
+        let wch = win::measure(f, ch);
+        if cx + wch > right && cx > x {
+            cy = cy + lh;
+            cx = x;
+            if ch[0] == ' ' { i = i + n; continue; }
+        }
+        let col = if link_end >= 0 { p.accent } else { c };
+        if cy >= top && cy + lh <= bot {
+            if code && ch[0] != ' ' {
+                win::fill(cx, cy + state::px(2), wch, lh - state::px(4), p.surface);
+            }
+            win::text_at(f, cx, cy, ch, col);
+        }
+        cx = cx + wch;
+        i = i + n;
+    }
+    return cy + lh;
+}
 fn wrap(f: u64, x: i32, y: i32, w: i32, s: const u8[:], c: u32, lh: i32, top: i32, bot: i32) -> i32 {
     if s.len == 0 { return y + lh; }
     var i: i64 = 0;
@@ -315,7 +387,7 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
             let body = plain(s[i..trim_end(s)]);
             let lh = win::th(state::f_ui) + state::px(5);
             let y_start = y;
-            y = wrap(state::f_ui, left + state::px(16), y, right - left - state::px(16), body[0..body.len], p.muted, lh, y0, y0 + h);
+            y = rich_line(left + state::px(16), y, right - left - state::px(16), s[i..trim_end(s)], p.muted, lh, y0, y0 + h);
             if y_start >= y0 && y_start <= y0 + h {
                 win::fill(left + state::px(4), y_start, state::px(3), y - y_start - state::px(3), p.accent_dim);
             }
@@ -447,18 +519,18 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
                 var rest: i64 = 3;
                 while rest < raw.len && is_space(raw[rest]) { rest++; }
                 let label = plain(raw[rest..raw.len]);
-                y = wrap(state::f_ui, left + state::px(20) + box + state::px(8), y, right - left - state::px(20) - box - state::px(12),
-                         label[0..label.len], p.text, lh, y0, y0 + h);
+                y = rich_line(left + state::px(20) + box + state::px(8), y, right - left - state::px(20) - box - state::px(12),
+                              raw[rest..raw.len], p.text, lh, y0, y0 + h);
                 line++;
                 continue;
             }
-            y = wrap(state::f_ui, left + state::px(20), y, right - left - state::px(24), body[0..body.len], p.text, lh, y0, y0 + h);
+            y = rich_line(left + state::px(20), y, right - left - state::px(24), raw, p.text, lh, y0, y0 + h);
             line++;
             continue;
         }
         let body = plain(s[trim_start(s)..trim_end(s)]);
         let lh = win::th(state::f_ui) + state::px(7);
-        y = wrap(state::f_ui, left, y, right - left, body[0..body.len], p.text, lh, y0, y0 + h);
+        y = rich_line(left, y, right - left, s[trim_start(s)..trim_end(s)], p.text, lh, y0, y0 + h);
         line++;
     }
     state::pv_total = y - (y0 + pady) + state::preview_scroll;

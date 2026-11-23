@@ -63,6 +63,32 @@ fn paint() {
     prefs::paint();
 }
 
+fn term_run() {
+    var echo: u8[>..] = [];
+    echo.append("PS> ");
+    echo.append(term_input);
+    echo.push('\n');
+    term.append(echo);
+    let cmd = copy(term_input);
+    term_input.resize(0);
+    if cmd.len == 0 { win::invalidate(); return; }
+    var line: u8[>..] = [];
+    line.append("cmd /c ");
+    line.append(cmd);
+    var buf: u8[>..] = [];
+    buf.resize(65536, 0);
+    var cwd: u8[>..] = [];
+    if state::root.len > 0 { cwd.append(state::root); } else { cwd.append("."); }
+    let n = win::gs_run_cmd(line[0], line.len as i64, buf[0], 65536, cwd[0], cwd.len as i64);
+    var j: i64 = 0;
+    while j < n && j < 65000 {
+        if buf[j] != 0 { term.push(buf[j]); }
+        j++;
+    }
+    term.push('\n');
+    win::invalidate();
+}
+
 fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {
     let p = theme::pal;
     win::fill(x0, y0, w, h, p.panel);

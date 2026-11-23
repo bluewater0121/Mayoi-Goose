@@ -81,12 +81,13 @@ fn overlay_open(kind: i32) {
     if kind == 1 { refresh_commands(); }
 }
 
+import app.menu.action;
+
 fn refresh_commands() {
     commands.resize(0);
-    commands.append("新建文件\0打开文件…\0打开文件夹…\0保存\0另存为…\0");
-    commands.append("切换侧边栏\0切换终端\0查找\0转到行…\0命令面板\0");
-    commands.append("颜色主题：浅色\0颜色主题：深色\0放大字号\0缩小字号\0重置字号\0");
-    commands.append("关闭编辑器\0重新加载窗口\0");
+    commands.append("新建文件\0打开文件夹…\0保存\0关闭标签页\0");
+    commands.append("切换侧边栏\0切换终端\0查找\0转到行…\0");
+    commands.append("浅色\0深色\0放大\0缩小\0重置缩放\0自动换行\0Vim 模式\0");
     compute_items(0);
 }
 
@@ -178,6 +179,16 @@ fn item_at(idx: i32) -> u8[>..] {
 
 // open_overlay_row opens the result the quick open box shows at idx.
 fn open_overlay_row(idx: i32) {
+    if state::overlay == 1 {
+        let name = item_at(idx);
+        if name.len > 0 && menu::run_label(name[0..name.len]) {
+            state::overlay = 0;
+            win::invalidate();
+            return;
+        }
+        state::overlay = 0;
+        return;
+    }
     var i: i32 = 0;
     var k: i64 = 0;
     var start: i64 = 0;

@@ -56,6 +56,16 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
         }
         return false;
     }
+    if state::focus == 2 && state::panel_open && state::panel_tab == 2 {
+        if vk == input::VK_RET { app::term_run(); return true; }
+        if vk == input::VK_BACK {
+            if app::term_input.len > 0 { app::term_input.resize(app::term_input.len - 1); }
+            win::invalidate();
+            return true;
+        }
+        if vk == input::VK_ESC { state::focus = 0; win::invalidate(); return true; }
+        return true;
+    }
     if vim::on() && state::focus == 0 && state::cur >= 0 && state::overlay == 0 && !state::menu_open {
         if vim::key(vk, ctrl, shift, alt) { win::invalidate(); return true; }
     }

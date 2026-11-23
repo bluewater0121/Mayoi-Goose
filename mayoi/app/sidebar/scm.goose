@@ -96,6 +96,28 @@ fn git_status_raw(out: u8[>..]&) {
     while j < n && j < 65000 { out.push(buf[j]); j++; }
 }
 
+fn git_verb(args: const u8[:], done: const u8[:]) {
+    var cmd: u8[>..] = [];
+    cmd.append(git_exe());
+    cmd.append(" ");
+    cmd.append(args);
+    let rc = run_git(cmd);
+    reload_scm();
+    if rc == 0 { app::set_status(done); } else { app::set_status("Git 命令失败，请查看输出面板"); }
+}
+
+fn git_stage_all() { git_verb("add -A", "已暂存所有更改"); }
+fn git_unstage_all() { git_verb("-c core.quotepath=false reset", "已取消暂存"); }
+fn git_fetch() { git_verb("fetch --all", "已抓取远程更新"); }
+fn git_pull() { git_verb("pull --ff-only", "已拉取"); }
+fn git_push() { git_verb("push", "已推送"); }
+fn git_stash(untracked: bool) {
+    if untracked { git_verb("stash -u", "已储藏（含未跟踪文件）"); }
+    else { git_verb("stash", "已储藏更改"); }
+}
+fn git_amend() { git_verb("commit --amend --no-edit", "已修改上次提交"); }
+fn git_undo_commit() { git_verb("reset --soft HEAD~1", "已撤销上次提交"); }
+
 fn reload_scm() {
     scm_rows.resize(0);
     scm_n = 0;

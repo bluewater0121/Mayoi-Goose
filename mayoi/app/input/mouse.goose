@@ -129,6 +129,11 @@ fn mouse_down(x: i32, y: i32, button: i32) {
         return;
     }
     if h.kind == state::HIT_CARET {
+        if h.arg == 1 && state::panel_open && state::panel_tab == 2 {
+            state::focus = 2;
+            win::invalidate();
+            return;
+        }
         state::focus = 0;
         if h.arg == 0 {
             state::drag = 1;

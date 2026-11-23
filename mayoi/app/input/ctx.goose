@@ -154,6 +154,8 @@ fn ctx_run(act: i32) {
         if act == 5 {
             let b = base_name(path);
             t.append(b);
+            chrome::ctx_clip.resize(0);
+            chrome::ctx_clip.append(path);
         } else if act == 7 {
             t.append(path);
         } else {
@@ -164,6 +166,41 @@ fn ctx_run(act: i32) {
         clip_put_text(t);
         app::set_status("已复制");
         chrome::ctx_close();
+        return;
+    }
+    if act == 6 {                       // paste the copied file or folder
+        if chrome::ctx_clip.len == 0 {
+            app::set_status("没有可粘贴的文件");
+            chrome::ctx_close();
+            return;
+        }
+        var dst: u8[>..] = [];
+        dst.append(dir);
+        dst.push('/');
+        dst.append(base_name(chrome::ctx_clip));
+        var cmd: u8[>..] = [];
+        if is_dir(chrome::ctx_clip) {
+            cmd.append("xcopy /E /I /Y \"");
+            cmd.append(chrome::ctx_clip);
+            cmd.append("\" \"");
+            cmd.append(dst);
+            cmd.push('"');
+        } else {
+            cmd.append("copy /Y \"");
+            cmd.append(chrome::ctx_clip);
+            cmd.append("\" \"");
+            cmd.append(dst);
+            cmd.push('"');
+        }
+        var out: u8[>..] = [];
+        out.resize(1024, 0);
+        var cwd: u8[>..] = [];
+        cwd.append(".");
+        let rc = win::gs_run_cmd(cmd[0], cmd.len as i64, out[0], 1024, cwd[0], 1);
+        chrome::ctx_close();
+        tree::rebuild();
+        if rc == 0 { app::set_status("已粘贴"); } else { app::set_status("粘贴失败，目标已存在同名文件"); }
+        win::invalidate();
         return;
     }
     if act == 9 {                       // rename
