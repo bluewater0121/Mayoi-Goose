@@ -160,6 +160,18 @@ fn run(i: i64) {
     if eq(id, "view.markdownOpen.live") { state::preview_open = true; state::preview_side = false; win::invalidate(); return; }
     if eq(id, "view.markdownOpen.reading") { state::preview_open = true; state::preview_side = false; win::invalidate(); return; }
     if eq(id, "view.markdownOpen.source") { state::preview_open = false; win::invalidate(); return; }
+    if eq(id, "view.jsonlOpen.table") {
+        let i = prefs::index_of("jsonlMode");
+        if i >= 0 { prefs::set(i, ""); prefs::store_save(); }
+        win::invalidate();
+        return;
+    }
+    if eq(id, "view.jsonlOpen.source") {
+        let i = prefs::index_of("jsonlMode");
+        if i >= 0 { prefs::set(i, "source"); prefs::store_save(); }
+        win::invalidate();
+        return;
+    }
     if eq(id, "view.wordWrap") {
         let i = prefs::index_of("wordWrap");
         if i >= 0 {

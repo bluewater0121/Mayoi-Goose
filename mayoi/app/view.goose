@@ -140,9 +140,23 @@ fn paint_panel(x0: i32, y0: i32, w: i32, h: i32) {
     // body follows the active tab: problems, output, terminal, debug
     var ty = y0 + state::panel_head + state::px(10);
     if state::panel_tab != 2 {
+        if state::panel_tab == 1 {
+            var oy = ty;
+            var i3: i64 = 0;
+            var s3: i64 = 0;
+            while i3 <= output.len && oy < y0 + h - state::px(6) {
+                if i3 == output.len || output[i3] == '\n' {
+                    if i3 > s3 { win::text_at(state::f_code_small, x0 + state::px(16), oy, output[s3..i3], p.text); }
+                    oy = oy + state::px(18);
+                    s3 = i3 + 1;
+                }
+                i3++;
+            }
+            state::add_hit(state::HIT_CARET, x0, y0 + state::panel_head, w, h - state::panel_head, 1);
+            return;
+        }
         var text: u8[>..] = [];
         if state::panel_tab == 0 { text.append("未发现问题。"); }
-        else if state::panel_tab == 1 { text.append("输出通道暂无内容。"); }
         else { text.append("调试会话尚未启动，按 F5 开始调试。"); }
         win::text_at(state::f_ui, x0 + state::px(16), ty, text, p.muted);
         state::add_hit(state::HIT_CARET, x0, y0 + state::panel_head, w, h - state::panel_head, 1);

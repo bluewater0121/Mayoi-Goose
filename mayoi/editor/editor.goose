@@ -3,6 +3,7 @@
 namespace editor;
 
 import std;
+import os;
 import app.state;
 import ui.theme;
 import ui.win;
@@ -10,6 +11,7 @@ import editor.text;
 import editor.syntax;
 import explore.tree;
 import app.draw;
+import app.prefs.model;
 import app.icons;
 import app.titlebar;
 import app.sidebar;
@@ -232,6 +234,153 @@ fn same_path(a: const u8[:], b: const u8[:]) -> bool {
     return true;
 }
 
+var jl_path: u8[>..] = [];
+var jl_text: u8[>..] = [];
+fn jl_mode_source() -> bool {
+    let i = prefs::index_of("jsonlMode");
+    if i < 0 { return false; }
+    let v = prefs::value(i);
+    return v.len > 0 && v[0] == 's';
+}
+
+fn is_jsonl(path: const u8[:]) -> bool {
+    if path.len < 6 { return false; }
+    let e = path[path.len - 6..path.len];
+    if e.len == 6 && e[0] == '.' && lower(e[1]) == 'j' && lower(e[2]) == 's' && lower(e[3]) == 'o' && lower(e[4]) == 'n' && lower(e[5]) == 'l' { return true; }
+    let e2 = path[path.len - 7..path.len];
+    if e2.len == 7 && e2[0] == '.' && lower(e2[1]) == 'n' && lower(e2[2]) == 'd' && lower(e2[3]) == 'j' && lower(e2[4]) == 's' && lower(e2[5]) == 'o' && lower(e2[6]) == 'n' { return true; }
+    return false;
+}
+
+fn jl_load(path: const u8[:]) {
+    if same_path(jl_path[0..jl_path.len], path) { return; }
+    jl_path.resize(0);
+    jl_path.append(path);
+    jl_text.resize(0);
+    read_file(path, jl_text);
+}
+
+fn line_at(s: const u8[:], n: i32) -> i32, i64, i64 {
+    var line: i32 = 0;
+    var a: i64 = 0;
+    var i: i64 = 0;
+    while i < s.len {
+        if s[i] == '\n' {
+            if line == n { return line, a, i; }
+            line++;
+            a = i + 1;
+        }
+        i++;
+    }
+    return line, a, s.len;
+}
+
+fn jl_value(s: const u8[:], key: const u8[:]) -> u8[>..] {
+    var out: u8[>..] = [];
+    var i: i64 = 0;
+    while i + key.len + 2 <= s.len {
+        var hit = true;
+        var k: i64 = 0;
+        while k < key.len { if s[i + 1 + k] != key[k] { hit = false; break; } k++; }
+        if hit && s[i] == '"' && s[i + 1 + key.len] == '"' {
+            var j = i + key.len + 2;
+            while j < s.len && (s[j] == ' ' || s[j] == ':') { j++; }
+            if j < s.len && s[j] == '"' {
+                j++;
+                while j < s.len && s[j] != '"' { out.push(s[j]); j++; }
+                return out;
+            }
+            while j < s.len && s[j] != ',' && s[j] != '}' { out.push(s[j]); j++; }
+            return out;
+        }
+        i++;
+    }
+    return out;
+}
+
+// paint_jsonl is the Table view: a row a line, a key a column.
+fn paint_jsonl(path: const u8[:], x0: i32, y0: i32, w: i32, h: i32, name: const u8[:]) {
+    let p = theme::pal;
+    jl_load(path);
+    win::fill(x0, y0, w, h, p.editor);
+    win::text_at(state::f_ui, x0 + state::px(16), y0 + state::px(8), name, p.muted);
+    let top = y0 + state::px(30);
+    let hh = state::px(28);
+    let rowh = state::px(22);
+    let s = jl_text[0..jl_text.len];
+    // the keys of the first object are the columns
+    var keys: u8[>..] = [];
+    let l0, a0, b0 = line_at(s, 0);
+    var i: i64 = a0;
+    while i < b0 {
+        if s[i] == '"' {
+            var j = i + 1;
+            var key: u8[>..] = [];
+            while j < b0 && s[j] != '"' { key.push(s[j]); j++; }
+            // a quoted string followed by a colon is a key
+            var c = j + 1;
+            while c < b0 && s[c] == ' ' { c++; }
+            if c < b0 && s[c] == ':' {
+                if keys.len > 0 { keys.push('\n'); }
+                keys.append(key);
+            }
+            i = j + 1;
+            continue;
+        }
+        i++;
+    }
+    var cols: i32 = 1;
+    var k: i64 = 0;
+    while k < keys.len { if keys[k] == '\n' { cols++; } k++; }
+    let colw = (w - state::px(32)) / cols;
+    win::fill(x0, top, w, hh, p.panel);
+    win::fill(x0, top + hh, w, 1, p.border);
+    var cx = x0 + state::px(16);
+    var k0: i64 = 0;
+    var kn: i64 = 0;
+    var ci: i32 = 0;
+    while kn <= keys.len {
+        if kn == keys.len || keys[kn] == '\n' {
+            if kn > k0 && ci < cols {
+                let key = keys[k0..kn];
+                win::text_at(state::f_code_small, cx + state::px(8), top + state::px(6), key, p.text);
+                win::fill(cx, top, 1, hh, p.border);
+            }
+            k0 = kn + 1;
+            cx = cx + colw;
+            ci++;
+        }
+        kn++;
+    }
+    var y = top + hh + 1;
+    var row: i32 = 0;
+    while y + rowh <= y0 + h {
+        let line, a, b = line_at(s, row);
+        if line < row { break; }
+        if b > a {
+            var cx2 = x0 + state::px(16);
+            var kk0: i64 = 0;
+            var kk: i64 = 0;
+            while kk <= keys.len {
+                if kk == keys.len || keys[kk] == '\n' {
+                    if kk > kk0 && cx2 < x0 + w - state::px(8) {
+                        let v = jl_value(s[a..b], keys[kk0..kk]);
+                        win::text_at(state::f_code_small, cx2 + state::px(8), y + state::px(3),
+                                     v[0..v.len], p.text);
+                    }
+                    kk0 = kk + 1;
+                    cx2 = cx2 + colw;
+                    if cx2 > x0 + w { break; }
+                }
+                kk++;
+            }
+            win::fill(x0 + state::px(16), y + rowh, w - state::px(16), 1, p.line);
+        }
+        row++;
+        y = y + rowh;
+    }
+}
+
 fn paint_image(path: const u8[:], x0: i32, y0: i32, w: i32, h: i32, name: const u8[:]) {
     let p = theme::pal;
     if !same_path(img_path[0..img_path.len], path) {
@@ -271,8 +420,12 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     state::ed_top = y0;
     state::ed_bot = y0 + h;
     if state::docs.len == 0 || state::cur < 0 { welcome(x0, y0, w, h); return; }
-    if state::wrap_enabled { paint_wrapped(x0, y0, w, h); return; }
     let d .= state::docs[state::cur];
+    if is_jsonl(d.path) && !jl_mode_source() {
+        paint_jsonl(d.path[0..d.path.len], x0, y0, w, h, d.name[0..d.name.len]);
+        return;
+    }
+    if state::wrap_enabled { paint_wrapped(x0, y0, w, h); return; }
     if is_image(d.path) {
         paint_image(d.path[0..d.path.len], x0, y0, w, h, d.name[0..d.name.len]);
         return;

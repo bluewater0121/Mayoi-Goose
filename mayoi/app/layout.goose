@@ -16,6 +16,7 @@ import app.sidebar;
 import app.tabs;
 import app.status;
 import editor.editor;var term: u8[>..] = [];
+var output: u8[>..] = [];       // the Output channel: what commands told us
 var term_input: u8[>..] = [];
 var show_welcome: bool = true;
 
@@ -198,6 +199,9 @@ fn set_status(msg: const u8[:]) {
     state::status_msg.resize(0);
     var k: i64 = 0;
     while k < msg.len { state::status_msg.push(msg[k]); k++; }
+    if output.len > 24000 { output.resize(0); }
+    output.append(msg);
+    output.push('\n');
     state::status_until = win::ticks() + 4000;
 }
 
