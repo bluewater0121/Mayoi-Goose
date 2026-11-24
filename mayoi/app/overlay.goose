@@ -38,8 +38,13 @@ fn paint_overlay() {
     win::fill(x, y + h - 1, w, 1, p.border);
     chrome::icon_at(4, x + state::px(12), y + (h - state::px(16)) / 2, state::px(16), p.faint);
     win::text_at(state::f_ui, x + state::px(36), y + (h - win::th(state::f_ui)) / 2, state::query, p.text);
+    let qw = win::measure(state::f_ui, state::query);
+    state::ime_x = x + state::px(36) + qw;
+    state::ime_y = y + h;
+    if state::ime_comp.len > 0 {
+        win::text_at(state::f_ui, x + state::px(36) + qw, y + (h - win::th(state::f_ui)) / 2, state::ime_comp, p.accent);
+    }
     if state::blink {
-        let qw = win::measure(state::f_ui, state::query);
         win::fill(x + state::px(36) + qw + state::px(1), y + state::px(12), state::px(2), h - state::px(24), p.text);
     }
     state::add_hit(state::HIT_OVERLAY, x, y, w, h, 0);

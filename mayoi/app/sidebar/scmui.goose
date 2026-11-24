@@ -71,6 +71,11 @@ fn scm_body(top: i32) {
         if state::scm_focus == 1 && state::blink {
             let mw = win::measure(state::f_small, state::scm_msg);
             win::fill(bx + state::px(8) + mw + 1, by2 + state::px(5), 1, bh - state::px(10), p.text);
+            state::ime_x = bx + state::px(8) + mw;
+            state::ime_y = by2 + bh;
+            if state::ime_comp.len > 0 {
+                win::text_at(state::f_small, bx + state::px(8) + mw, ty, state::ime_comp, p.accent);
+            }
         }
     }
     let btny = by2 + bh + state::px(8);

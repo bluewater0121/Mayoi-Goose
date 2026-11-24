@@ -147,6 +147,11 @@ fn main() {
                     mcp::serve(req, ob);
                     if ob.len > 0 { win::mcp_send(ob[0], ob.len); }
                 }
+                if state::search_due > 0 && win::ticks() >= state::search_due {
+                    state::search_due = 0;
+                    chrome::run_search();
+                    win::invalidate();
+                }
             }
             continue;
         }
@@ -172,7 +177,7 @@ fn main() {
             continue;
         }
         if msg.m == 0x0102 {                            // WM_CHAR
-            if state::ime_composing || win::ticks() < state::ime_skip_until { continue; }
+            if state::ime_composing && state::ime_comp.len > 0 || win::ticks() < state::ime_skip_until { continue; }
             if (msg.wp as u16) < 32 { continue; }       // control keys, not text
             if prefs::open { prefs::typed(msg.wp as u16); win::invalidate(); continue; }
             if state::menu_open { continue; }
@@ -219,6 +224,12 @@ fn main() {
                 while k < n { state::ime_comp.push(ib[k]); k++; }
                 win::invalidate();
             }
+        }
+        if msg.m == 0x010E {                            // WM_IME_ENDCOMPOSITION
+            state::ime_composing = false;
+            state::ime_comp.resize(0);
+            win::invalidate();
+            continue;
         }
         if msg.m == 0x0286 {                            // WM_IME_CHAR
             // the composed text already arrives once as WM_IME_COMPOSITION's

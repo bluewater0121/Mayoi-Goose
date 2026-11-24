@@ -42,6 +42,7 @@ fn field_text(x: i32, y: i32, w: i32, h: i32, buf: const u8[:], hint: const u8[:
     let ty = y + (h - win::th(f)) / 2;
     if buf.len == 0 {
         win::text_at(f, x + state::px(8), ty, hint, p.faint);
+        if caret { state::ime_x = x + state::px(8); state::ime_y = y + h; }
         return;
     }
     draw_fit(f, x + state::px(8), ty, buf, w - state::px(14), p.text);
@@ -49,6 +50,12 @@ fn field_text(x: i32, y: i32, w: i32, h: i32, buf: const u8[:], hint: const u8[:
         let qw = win::measure(f, buf);
         if qw < w - state::px(12) {
             win::fill(x + state::px(8) + qw + 1, y + state::px(5), 1, h - state::px(10), p.text);
+        }
+        // the IME's candidate window belongs under this box's caret, not the editor's
+        state::ime_x = x + state::px(8) + qw;
+        state::ime_y = y + h;
+        if state::ime_comp.len > 0 {
+            win::text_at(f, x + state::px(8) + qw, ty, state::ime_comp, p.accent);
         }
     }
 }

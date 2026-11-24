@@ -26,6 +26,9 @@ import app.prefs.model;
 fn mouse_down(x: i32, y: i32, button: i32) {
     state::mx = x;
     state::my = y;
+    // a click ends any composition left behind, so typing never stays blocked
+    state::ime_composing = false;
+    state::ime_comp.resize(0);
     if prefs::open {
         prefs::click(x, y);
         win::invalidate();

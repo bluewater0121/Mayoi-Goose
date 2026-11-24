@@ -10,6 +10,7 @@ var cur: i32 = -1;
 var ime_x: i32 = 0;
 var ime_y: i32 = 0;
 var ime_skip_until: i64 = 0;
+var search_due: i64 = 0;      // when a paused query should scan, 0 for no scan
 var ime_composing: bool = false;
 var ime_comp: u8[>..] = [];
 var lines: i64[>..] = [];        // line starts of the current document

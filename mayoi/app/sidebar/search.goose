@@ -415,18 +415,18 @@ fn replace_all() {
 // draw_fit draws text that stops with an ellipsis when it would overflow.
 fn search_char(c: u16) {
     if c == 8 {
-        if state::search_field == 0 && state::search_q.len > 0 { text::trim_utf8(&state::search_q); run_search(); }
+        if state::search_field == 0 && state::search_q.len > 0 { text::trim_utf8(&state::search_q); state::search_due = win::ticks() + 200; }
         else if state::search_field == 1 && state::search_rep.len > 0 { text::trim_utf8(&state::search_rep); }
-        else if state::search_field == 2 && state::search_inc.len > 0 { text::trim_utf8(&state::search_inc); run_search(); }
-        else if state::search_field == 3 && state::search_exc.len > 0 { text::trim_utf8(&state::search_exc); run_search(); }
+        else if state::search_field == 2 && state::search_inc.len > 0 { text::trim_utf8(&state::search_inc); state::search_due = win::ticks() + 200; }
+        else if state::search_field == 3 && state::search_exc.len > 0 { text::trim_utf8(&state::search_exc); state::search_due = win::ticks() + 200; }
         win::invalidate();
         return;
     }
     if c < 32 { return; }
-    if state::search_field == 0 { text::push_char(&state::search_q, c); run_search(); }
+    if state::search_field == 0 { text::push_char(&state::search_q, c); state::search_due = win::ticks() + 200; }
     else if state::search_field == 1 { text::push_char(&state::search_rep, c); }
-    else if state::search_field == 2 { text::push_char(&state::search_inc, c); run_search(); }
-    else { text::push_char(&state::search_exc, c); run_search(); }
+    else if state::search_field == 2 { text::push_char(&state::search_inc, c); state::search_due = win::ticks() + 200; }
+    else { text::push_char(&state::search_exc, c); state::search_due = win::ticks() + 200; }
     win::invalidate();
 }
 

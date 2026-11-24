@@ -95,8 +95,8 @@ fn open_row(idx: i32) {
 
 fn overlay_char(c: u16) {
     if state::overlay == 0 { return; }
-    if c < 32 || c > 0x7E { if c < 0x80 { return; } }
-    state::query.push(c as u8);
+    if c < 32 { return; }
+    text::push_char(&state::query, c);
     app::recompute();
     win::invalidate();
 }
