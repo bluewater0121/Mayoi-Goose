@@ -9,6 +9,7 @@ extern "user32" {
                      w: i32, h: i32, parent: u64, menu: u64, inst: u64, param: u64) -> u64
                      = "CreateWindowExW";
     fn show_window(h: u64, cmd: i32) -> bool = "ShowWindow";
+    fn is_zoomed(h: u64) -> bool = "IsZoomed";
     fn update_window(h: u64) -> bool = "UpdateWindow";
     fn get_message(msg: Msg&, h: u64, lo: u32, hi: u32) -> i32 = "GetMessageW";
     fn peek_message(msg: Msg&, h: u64, lo: u32, hi: u32, remove: u32) -> bool = "PeekMessageW";

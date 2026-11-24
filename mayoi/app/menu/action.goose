@@ -165,6 +165,16 @@ fn run(i: i64) {
     if eq(id, "view.theme.witchsbrew") { theme::set_named("witchsbrew"); save_theme("witchsbrew"); win::invalidate(); return; }
     if eq(id, "view.theme.bloodmoon") { theme::set_named("bloodmoon"); save_theme("bloodmoon"); win::invalidate(); return; }
     if eq(id, "view.theme.gtavi") { theme::set_named("gtavi"); save_theme("gtavi"); win::invalidate(); return; }
+    if eq(id, "view.projectTabs") {
+        let i = prefs::index_of("projectTabs");
+        if i >= 0 {
+            let on = prefs::is_true(i);
+            prefs::set(i, if on { "" } else { "1" });
+            prefs::store_save();
+        }
+        win::invalidate();
+        return;
+    }
     if eq(id, "view.locale.system") { save_locale(""); win::invalidate(); return; }
     if eq(id, "view.locale.en") { save_locale("en"); win::invalidate(); return; }
     if eq(id, "view.locale.ja") { save_locale("ja"); win::invalidate(); return; }

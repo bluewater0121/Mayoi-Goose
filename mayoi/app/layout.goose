@@ -29,6 +29,7 @@ fn layout() {
     state::crumb_h = state::px(41);
     state::status_h = state::px(30);
     state::panel_head = state::px(34);
+    if state::panel_h == 0 { state::panel_h = state::px(240); }
     state::row_h = state::px(35);
     state::line_h = state::px(25);
     state::sidebar_w = state::px(319);
@@ -58,6 +59,7 @@ fn setting_num(key: const u8[:], def: i32) -> i32 {
 // apply_settings makes the window follow the settings that shape how it looks:
 // the light or dark palette, the code font, its size and line height.
 fn apply_settings() {
+    if projects_on() { proj_load(); }
     let li = prefs::index_of("locale");
     if li >= 0 {
         let lv = prefs::value(li);
@@ -218,6 +220,14 @@ fn set_status(msg: const u8[:]) {
 }
 
 fn set_root(path: const u8[:]) {
+    if projects_on() {
+        let found = proj_find(path);
+        if found >= 0 { state::pcur = found; }
+        else {
+            proj_push(path);
+            state::pcur = state::pn - 1;
+        }
+    }
     state::root.resize(0);
     var k: i64 = 0;
     while k < path.len { state::root.push(path[k]); k++; }
@@ -235,5 +245,132 @@ fn set_root(path: const u8[:]) {
     prefs::store_load();
     prefs::folder_load();
     apply_settings();
+}
+
+// --- project tabs -------------------------------------------------------------
+
+fn projects_on() -> bool {
+    let i = prefs::index_of("projectTabs");
+    if i < 0 { return false; }
+    return prefs::is_true(i);
+}
+
+fn same(a: const u8[:], b: const u8[:]) -> bool {
+    if a.len != b.len { return false; }
+    var i: i64 = 0;
+    while i < a.len { if a[i] != b[i] { return false; } i++; }
+    return true;
+}
+
+fn proj_start(i: i32) -> i64 {
+    var k: i64 = 0;
+    var idx: i32 = 0;
+    while idx < i {
+        while k < state::pbuf.len && state::pbuf[k] != 0 { k++; }
+        k++;
+        idx++;
+    }
+    return k;
+}
+
+fn proj_len(i: i32) -> i32 {
+    var k: i64 = proj_start(i);
+    var n: i64 = 0;
+    while k + n < state::pbuf.len && state::pbuf[k + n] != 0 { n++; }
+    return n as i32;
+}
+
+fn proj_slice(i: i32) -> u8[:] {
+    var a: i64 = proj_start(i);
+    return state::pbuf[a..a + proj_len(i) as i64];
+}
+
+fn proj_find(path: const u8[:]) -> i32 {
+    var i: i32 = 0;
+    while i < state::pn {
+        if proj_len(i) == (path.len as i32) {
+            let a: i64 = proj_start(i);
+            var k: i64 = 0;
+            var same = true;
+            while k < path.len {
+                if state::pbuf[a + k] != path[k] { same = false; break; }
+                k++;
+            }
+            if same { return i; }
+        }
+        i++;
+    }
+    return -1;
+}
+
+fn proj_push(path: const u8[:]) {
+    if proj_find(path) >= 0 { return; }
+    var k: i64 = 0;
+    while k < path.len { state::pbuf.append(path[k..k+1]); k++; }
+    let z: u8[1] = [0];
+    state::pbuf.append(z[0..1]);
+    state::pn++;
+}
+
+fn proj_switch(i: i32) {
+    if i < 0 || i >= state::pn { return; }
+    state::pcur = i;
+    set_root(proj_slice(i));
+    proj_save();
+    win::invalidate();
+}
+
+// projects.txt under the config directory keeps one folder path a line, the
+// way the reference remembers the folders of the window.
+fn proj_file() -> u8[>..] {
+    var d = prefs::app_data_dir();
+    return prefs::join2(d[0..d.len], "\\projects.txt");
+}
+
+fn proj_save() {
+    var out: u8[>..] = [];
+    var i: i32 = 0;
+    while i < state::pn {
+        out.append(proj_slice(i));
+        out.push('\n');
+        i++;
+    }
+    write_file(proj_file()[0..proj_file().len], out[0..out.len]);
+}
+
+var projs_loaded = false;
+fn proj_load() {
+    if projs_loaded { return; }
+    projs_loaded = true;
+    var buf: u8[>..] = [];
+    if !read_file(proj_file()[0..proj_file().len], buf) { return; }
+    var start: i64 = 0;
+    var k: i64 = 0;
+    while k <= buf.len {
+        if k == buf.len || buf[k] == '\n' {
+            if k > start {
+                let line = buf[start..k];
+                if !same(line, state::root[0..state::root.len]) && proj_find(line) < 0 { proj_push(line); }
+            }
+            start = k + 1;
+        }
+        k++;
+    }
+    let ri = proj_find(state::root);
+    if ri >= 0 { state::pcur = ri; }
+}
+
+fn open_folder(path: const u8[:]) {
+    if projects_on() {
+        let i = proj_find(path);
+        if i >= 0 {
+            state::pcur = i;
+            set_root(path);
+            return;
+        }
+        proj_push(path);
+        state::pcur = state::pn - 1;
+    }
+    set_root(path);
 }
 

@@ -46,7 +46,7 @@ fn open_folder_dialog() {
     let n = win::pick_folder(win::hwnd, buf[0], 4096);
     if n > 0 {
         buf.resize(n);
-        app::set_root(buf);
+        app::open_folder(buf);
         state::view = 1;
     }
     win::invalidate();

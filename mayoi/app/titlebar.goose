@@ -51,8 +51,15 @@ fn title_bar() {
 
     icon_at(16, state::W - state::px(211), iy, ic, p.muted);
     state::add_hit(state::HIT_TOGGLE_TERM, state::W - state::px(219), 0, state::px(34), state::title_h, 0);
-    icon_at(28, state::W - state::px(163), iy, ic, p.muted);   // window controls
-    icon_at(22, state::W - state::px(105), iy, ic, p.muted);
+    icon_at(28, state::W - state::px(163), iy, ic, p.muted);   // minimize
+    // the maximize button is the plain square the usual window frame has
+    let mw = state::px(10);
+    let mx = state::W - state::px(111);
+    let my = state::title_h / 2 - mw / 2;
+    win::line(mx, my, mx + mw, my, p.muted, 1);
+    win::line(mx + mw, my, mx + mw, my + mw, p.muted, 1);
+    win::line(mx + mw, my + mw, mx, my + mw, p.muted, 1);
+    win::line(mx, my + mw, mx, my, p.muted, 1);
     icon_at(12, state::W - state::px(47), iy, ic, p.muted);
     state::add_hit(state::HIT_RULE, state::W - state::px(179), 0, state::px(46), state::title_h, 10);
     state::add_hit(state::HIT_RULE, state::W - state::px(121), 0, state::px(46), state::title_h, 11);

@@ -83,6 +83,11 @@ var status_msg: u8[>..] = [];
 var status_until: i64 = 0;
 var root: u8[>..] = [];
 var root_name: u8[>..] = [];
+// The folders open at once while project tabs are on: the rail badges, in
+// the order they were opened, and the one shown.
+var pbuf: u8[>..] = [];
+var pn: i32 = 0;
+var pcur: i32 = -1;
 var hover_kind: i32 = 0;
 var hover_arg: i64 = 0;
 var drag: i32 = 0;            // 0 none, 1 text select, 2 scrollbar, 3 splitter
@@ -147,6 +152,7 @@ let HIT_PREFS_PL_RELOAD = 46; let HIT_PREFS_PL_FOLDER = 47; let HIT_PREFS_PL_TOG
 let HIT_PREFS_PL_REMOVE = 49; let HIT_PREFS_PL_INSTALL = 50; let HIT_PREFS_PL_CARD = 51;
 let HIT_PREFS_PL_BACK = 52;
 let HIT_PREVIEW = 53; let HIT_PREFS_SCOPE = 54;
+let HIT_PROJECT = 55;
 
 fn hit(kind: i32, x: i32, y: i32, w: i32, h: i32, arg: i64) -> Hit {
     return Hit { x, y, w, h, kind, arg };

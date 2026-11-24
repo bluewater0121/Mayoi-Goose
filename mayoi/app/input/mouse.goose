@@ -43,6 +43,22 @@ fn mouse_down(x: i32, y: i32, button: i32) {
         win::invalidate();
         return;
     }
+    var pj: i32 = -1;
+    var jj = state::hits.len - 1;
+    while jj >= 0 {
+        let hh = state::hits[jj];
+        if hh.kind == state::HIT_ACTIVITY && hh.arg >= 10 {
+            if x >= hh.x && x < hh.x + hh.w && y >= hh.y && y < hh.y + hh.h {
+                pj = jj as i32;
+                break;
+            }
+        }
+        jj--;
+    }
+    if pj >= 0 {
+        app::proj_switch((state::hits[pj as i64].arg - 10) as i32);
+        return;
+    }
     let hi = state::find_hit(x, y);
     if hi < 0 { return; }
     let h = state::hits[hi as i64];
@@ -98,7 +114,13 @@ fn mouse_down(x: i32, y: i32, button: i32) {
         return;
     }
     if h.kind == state::HIT_TOGGLE_SIDEBAR { state::sidebar_open = !state::sidebar_open; win::invalidate(); return; }
-    if h.kind == state::HIT_TOGGLE_TERM { state::panel_open = !state::panel_open; win::invalidate(); return; }
+    if h.kind == state::HIT_TOGGLE_TERM {
+        state::panel_open = true;
+        state::panel_tab = 2;
+        state::focus = 2;
+        win::invalidate();
+        return;
+    }
     if h.kind == state::HIT_CLOSE_PANEL { state::panel_open = false; win::invalidate(); return; }
     if h.kind == state::HIT_PANEL_TAB { state::panel_tab = h.arg as i32; win::invalidate(); return; }
     if h.kind == state::HIT_CMD { app::overlay_open(2); win::invalidate(); return; }
@@ -117,6 +139,12 @@ fn mouse_down(x: i32, y: i32, button: i32) {
         else if h.arg == 3 { input::open_folder_dialog(); }
         else if h.arg == 4 { app::overlay_open(2); }
         else if h.arg == 5 { app::overlay_open(1); }
+        else if h.arg == 10 { win::show_window(win::hwnd, 6); }
+        else if h.arg == 11 {
+            if win::is_zoomed(win::hwnd) { win::show_window(win::hwnd, 9); }
+            else { win::show_window(win::hwnd, 3); }
+        }
+        else if h.arg == 12 { win::post_message(win::hwnd, 0x0010, 0, 0); }
         win::invalidate();
         return;
     }
