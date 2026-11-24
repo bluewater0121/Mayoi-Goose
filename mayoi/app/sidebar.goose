@@ -124,7 +124,7 @@ fn sidebar_char(c: u16) {
     }
     if state::view == 3 && state::scm_focus == 1 {
         if c == 8 {
-            if state::scm_msg.len > 0 { state::scm_msg.resize(state::scm_msg.len - 1); }
+            if state::scm_msg.len > 0 { text::trim_utf8(&state::scm_msg); }
         } else if c >= 32 {
             state::scm_msg.push(c as u8);
         }

@@ -193,9 +193,9 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
     }
     if vk == input::VK_BACK {
         if prefs::edit == -2 {
-            if prefs::query.len > 0 { prefs::query.resize(prefs::query.len - 1); prefs::scroll = 0; }
+            if prefs::query.len > 0 { text::trim_utf8(&prefs::query); prefs::scroll = 0; }
         } else if prefs::edit >= 0 {
-            if prefs::edit_buf.len > 0 { prefs::edit_buf.resize(prefs::edit_buf.len - 1); }
+            if prefs::edit_buf.len > 0 { text::trim_utf8(&prefs::edit_buf); }
         }
         return true;
     }

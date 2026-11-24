@@ -197,6 +197,14 @@ fn line_end(l: i32) -> i64 {
     return state::lines[l + 1] - 1;
 }
 
+// trim_utf8 drops one character, not one byte, from the end of an input buffer.
+fn trim_utf8(b: u8[>..]&) {
+    if b.len == 0 { return; }
+    var p: i64 = b.len - 1;
+    while p > 0 && (b[p] & 0xC0) == 0x80 { p--; }
+    b.resize(p, 0);
+}
+
 fn after_edit(pos: i64, structural: bool) {
     if structural { reindex(); return; }
     let d .= curdoc();

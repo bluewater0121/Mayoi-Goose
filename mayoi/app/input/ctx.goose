@@ -96,7 +96,7 @@ fn cancel_rename() {
 fn rename_char(c: u16) {
     if !state::ren_active { return; }
     if c == 8 {
-        if state::ren_buf.len > 0 { state::ren_buf.resize(state::ren_buf.len - 1); }
+        if state::ren_buf.len > 0 { text::trim_utf8(&state::ren_buf); }
     } else if c >= 32 {
         state::ren_buf.push(c as u8);
     }

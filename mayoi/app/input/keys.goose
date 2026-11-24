@@ -48,7 +48,7 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
         if vk == input::VK_DOWN { if state::overlay_sel < app::item_count - 1 { state::overlay_sel++; win::invalidate(); } return true; }
         if vk == input::VK_BACK {
             if state::query.len > 0 {
-                state::query.resize(state::query.len - 1);
+                text::trim_utf8(&state::query);
                 app::recompute();
                 win::invalidate();
             }

@@ -415,10 +415,10 @@ fn replace_all() {
 // draw_fit draws text that stops with an ellipsis when it would overflow.
 fn search_char(c: u16) {
     if c == 8 {
-        if state::search_field == 0 && state::search_q.len > 0 { state::search_q.resize(state::search_q.len - 1); run_search(); }
-        else if state::search_field == 1 && state::search_rep.len > 0 { state::search_rep.resize(state::search_rep.len - 1); }
-        else if state::search_field == 2 && state::search_inc.len > 0 { state::search_inc.resize(state::search_inc.len - 1); run_search(); }
-        else if state::search_field == 3 && state::search_exc.len > 0 { state::search_exc.resize(state::search_exc.len - 1); run_search(); }
+        if state::search_field == 0 && state::search_q.len > 0 { text::trim_utf8(&state::search_q); run_search(); }
+        else if state::search_field == 1 && state::search_rep.len > 0 { text::trim_utf8(&state::search_rep); }
+        else if state::search_field == 2 && state::search_inc.len > 0 { text::trim_utf8(&state::search_inc); run_search(); }
+        else if state::search_field == 3 && state::search_exc.len > 0 { text::trim_utf8(&state::search_exc); run_search(); }
         win::invalidate();
         return;
     }
