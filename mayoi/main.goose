@@ -247,7 +247,13 @@ fn main() {
             let mx = win::mx((msg.lp & 0xFFFF) as i32);
             let my = win::my(((msg.lp >> 16) & 0xFFFF) as i32);
             if state::menu_open { if menu::press(mx, my) { win::invalidate(); continue; } }
-            if mx >= state::px(12) && mx < state::px(46) && my < state::title_h {
+            if state::title_h > 0 {
+                if mx >= state::px(12) && mx < state::px(46) && my < state::title_h {
+                    menu::open();
+                    win::invalidate();
+                    continue;
+                }
+            } else if mx < state::px(32) && my < state::px(34) {
                 menu::open();
                 win::invalidate();
                 continue;

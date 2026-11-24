@@ -29,6 +29,13 @@ fn paint() {
     win::fill(0, 0, state::W, state::H, p.chrome);
     if state::title_h > 0 { chrome::title_bar(); }
     if state::sidebar_open { chrome::sidebar(); }
+    if state::title_h == 0 {
+        // the native caption has no app menu, so keep a small ≡ at the left
+        let ic = state::px(16);
+        chrome::icon_at(1, state::px(8), state::px(10), ic,
+            if state::menu_open { p.text } else { p.muted });
+        state::add_hit(state::HIT_MENU, 0, 0, state::px(32), state::px(34), 0);
+    }
     let x0 = state::right_x();
     let y0 = state::title_h;
     if state::docs.len > 0 && state::cur >= 0 { chrome::tabs(); chrome::crumbs(); }
