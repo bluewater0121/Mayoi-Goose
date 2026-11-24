@@ -90,6 +90,7 @@ fn main() {
 
     var msg: win::Msg = win::Msg { .. };
     while win::get_message(msg, 0, 0, 0) > 0 {
+        win::translate_message(msg);
         if msg.m == 0x0012 { break; }                  // WM_QUIT
         if msg.m == 0x0010 { win::quit = true; break; } // WM_CLOSE
         if msg.m == 0x8002 {                            // WM_SIZE (posted)

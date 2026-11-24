@@ -32,7 +32,7 @@ fn new_file() {
 
 fn open_file_dialog() {
     var buf: u8[>..] = [];
-    buf.resize(4096);
+    buf.resize(4096, 0);
     let n = win::pick_file(win::hwnd, buf[0], 4096);
     if n > 0 {
         buf.resize(n);
@@ -43,7 +43,7 @@ fn open_file_dialog() {
 
 fn open_folder_dialog() {
     var buf: u8[>..] = [];
-    buf.resize(4096);
+    buf.resize(4096, 0);
     let n = win::pick_folder(win::hwnd, buf[0], 4096);
     if n > 0 {
         buf.resize(n);
