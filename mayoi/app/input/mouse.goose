@@ -113,6 +113,7 @@ fn mouse_down(x: i32, y: i32, button: i32) {
         win::invalidate();
         return;
     }
+    if h.kind == state::HIT_PROJECT_NEW { input::open_folder_dialog(); return; }
     if h.kind == state::HIT_TOGGLE_SIDEBAR { state::sidebar_open = !state::sidebar_open; win::invalidate(); return; }
     if h.kind == state::HIT_TOGGLE_TERM {
         state::panel_open = true;

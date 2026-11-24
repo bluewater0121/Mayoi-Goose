@@ -27,7 +27,7 @@ fn rail() {
     state::add_hit(state::HIT_ACTIVITY, state::px(120), row1 + state::px(5), state::px(32), state::px(32), 4);
     if app::projects_on() && state::pn > 0 {
         var i: i32 = 0;
-        let by0 = state::H - state::px(24) - state::pn * state::px(38);
+        let by0 = state::H - state::px(24) - (state::pn + 1) * state::px(38);
         var by = by0;
         while i < state::pn {
             let on = i == state::pcur;
@@ -42,6 +42,11 @@ fn rail() {
             by = by + state::px(38);
             i++;
         }
+        // the button that opens another folder into the rail
+        win::round_rect(state::px(20), by, state::px(32), state::px(32), state::px(8), state::px(8), p.surface_hover);
+        win::line(state::px(20) + state::px(16), by + state::px(10), state::px(20) + state::px(16), by + state::px(22), p.muted, 1);
+        win::line(state::px(20) + state::px(10), by + state::px(16), state::px(20) + state::px(22), by + state::px(16), p.muted, 1);
+        state::add_hit(state::HIT_PROJECT_NEW, 0, by - state::px(6), state::px(60), state::px(44), 0);
     }
 }
 
@@ -73,5 +78,6 @@ fn badge(pi: i32) -> u8[>..] {
         while q < n && j < path.len { out.append(path[j..j+1]); j++; q++; }
         take++;
     }
+    if out.len > 0 && out[0] >= 'a' && out[0] <= 'z' { out[0] = out[0] - 32; }
     return out;
 }
