@@ -119,6 +119,10 @@ fn state_text(out: u8[>..]&) {
     json::format_int(out, state::docs.len);
     out.append(",\"focus\":");
     json::format_int(out, state::focus);
+    out.append(",\"w\":");
+    json::format_int(out, state::W);
+    out.append(",\"h\":");
+    json::format_int(out, state::H);
     out.append(",\"bytes\":");
     var bytes: i64 = 0;
     if state::cur >= 0 && state::cur < state::docs.len as i32 { bytes = state::docs[state::cur].len; }
@@ -133,7 +137,7 @@ fn state_text(out: u8[>..]&) {
     if state::cur >= 0 && state::cur < state::docs.len as i32 {
         let l2, c2 = text::line_col(state::docs[state::cur].sel_b);
         line = l2;
-        col = c2;
+        col = text::col_cells(state::cur, state::docs[state::cur].sel_b) as i64;
     }
     json::format_int(out, line);
     out.append(",\"col\":");

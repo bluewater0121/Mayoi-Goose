@@ -51,7 +51,8 @@ static LRESULT CALLBACK gs_proc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
         {   // drag by the empty parts of the title bar (not the buttons / command box)
             int cx = (int)(pt.x - rc.left), cy = (int)(pt.y - rc.top);
             int inCmd = (cx > 280 && cx < 810 && cy > 5 && cy < 42);
-            if (cy >= 0 && cy < 48 && cx >= 92 && !inCmd) return HTCAPTION;
+            int inBtn = cx > rc.right - 250;   // minimize / maximize / close
+            if (cy >= 0 && cy < 48 && cx >= 92 && !inCmd && !inBtn) return HTCAPTION;
         }
         return HTCLIENT;
     }

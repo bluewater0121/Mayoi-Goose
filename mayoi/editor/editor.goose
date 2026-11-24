@@ -84,7 +84,8 @@ fn paint_wrapped(x0: i32, y0: i32, w: i32, h: i32) {
     var maxcells = ((right - tx) * 9 / 10) / state::cell_w - 2;
     if maxcells < 8 { maxcells = 8; }
     let lh = state::line_h;
-    let caret_line, caret_col = text::line_col(d.sel_b);
+    let caret_line, caret_byte = text::line_col(d.sel_b);
+    let caret_col = text::col_cells(state::cur, d.sel_b) as i64;
     var vis: i32 = 0;
     var line = d.scroll;
     if line < 0 { line = 0; }
@@ -447,7 +448,8 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     if d.scroll != first { d.scroll = first; }
     let line_no = p.gutter;
     let line_now = p.gutter_now;
-    let caret_line, caret_col = text::line_col(d.sel_b);
+    let caret_line, caret_byte = text::line_col(d.sel_b);
+    let caret_col = text::col_cells(state::cur, d.sel_b) as i64;
     let sa = text::sel_min(state::cur);
     let sb = text::sel_max(state::cur);
     var spans: syntax::Span[>..] = [];
