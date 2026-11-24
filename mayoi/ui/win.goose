@@ -118,6 +118,10 @@ extern fn gs_confirm(hwnd: u64, text: const u8&, len: i64) -> i64;
 extern fn gs_pick_folder(hwnd: u64, out: u8&, cap: i64) -> i64;
 extern fn gs_ime_pos(hwnd: u64, x: i32, y: i32) -> i64;
 extern fn gs_ime_result(hwnd: u64, out: u8&, cap: i64) -> i64;
+extern fn gs_mcp_start(hwnd: u64, port: i64) -> i64;
+extern fn gs_mcp_poll(out: u8&, cap: i64) -> i64;
+extern fn gs_mcp_send(p: u8&, n: i64);
+extern fn gs_capture(hwnd: u64, x: i64, y: i64, w: i64, h: i64, path: u8&, cap: i64) -> i64;
 extern fn gs_ime_comp(hwnd: u64, out: u8&, cap: i64) -> i64;
 extern fn gs_pick_file(hwnd: u64, out: u8&, cap: i64) -> i64;
 extern fn gs_run_cmd(cmd: const u8&, len: i64, out: u8&, cap: i64, cwd: const u8&, cwdlen: i64) -> i64;
@@ -484,3 +488,8 @@ fn run_silent(cmd: const u8[:]) {
     gs_run_cmd(cmd[0], cmd.len, out[0], 8192, cwd[0], 0);
 }
 
+
+fn mcp_start() -> bool { return gs_mcp_start(hwnd, 7788) != 0; }
+fn mcp_poll(out: u8&, cap: i64) -> i64 { return gs_mcp_poll(out, cap); }
+fn mcp_send(p: u8&, n: i64) { gs_mcp_send(p, n); }
+fn capture(path: u8&, cap: i64, x: i64, y: i64, w: i64, h: i64) -> i64 { return gs_capture(hwnd, x, y, w, h, path, cap); }

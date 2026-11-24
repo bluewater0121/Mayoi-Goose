@@ -23,6 +23,7 @@ import app.overlay;
 import app.input;
 import app.menu.input;
 import app.menu.paint;
+import app.mcp;
 import app.prefs.input;
 import app.prefs.model;
 import app.prefs.store;
@@ -37,6 +38,7 @@ fn main() {
     guard win::open("Mayoi", state::px(1262), state::px(811)) else {
         return;
     }
+    win::mcp_start();
     app::layout();
     var rc: win::Rect = win::Rect { 0, 0, 0, 0 };
     win::get_client_rect(win::hwnd, rc);
@@ -133,6 +135,21 @@ fn main() {
             win::invalidate();
             continue;
         }
+        if msg.m == 0x0113 {                            // WM_TIMER: control channel
+            if msg.wp == 7 {
+                var mb: u8[..8192] = [0; 8192];
+                let got = win::mcp_poll(mb[0], 8192);
+                if got > 0 {
+                    var req: u8[>..] = [];
+                    var k: i64 = 0;
+                    while k < got { req.push(mb[k]); k++; }
+                    var ob: u8[>..] = [];
+                    mcp::serve(req, ob);
+                    if ob.len > 0 { win::mcp_send(ob[0], ob.len); }
+                }
+            }
+            continue;
+        }
         if msg.m == 0x000F {                            // WM_PAINT
             if win::dc == 0 {
                 var cr: win::Rect = win::Rect { 0, 0, 0, 0 };
@@ -191,6 +208,7 @@ fn main() {
                 state::ime_composing = false;
                 state::ime_comp.resize(0);
                 if n > 0 { input::typed(ib[0..n]); }
+                if state::focus == 0 && state::cur >= 0 && vim::on() { vim::sync(); vim::set_mode(1); }
                 state::ime_skip_until = win::ticks() + 400;
                 win::invalidate();
             } else if (msg.lp & 0x8) != 0 {

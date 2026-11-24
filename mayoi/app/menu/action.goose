@@ -88,6 +88,15 @@ fn select_all() {
     win::invalidate();
 }
 
+fn run_id(id: const u8[:]) -> bool {
+    var i: i64 = 0;
+    while i < menu::items.len {
+        if eq(menu::id_at(i), id) { run(i); return true; }
+        i++;
+    }
+    return false;
+}
+
 fn run(i: i64) {
     if i < 0 || i >= menu::items.len { return; }
     let it = menu::items[i];

@@ -1,5 +1,6 @@
 // The little C beside the program: pointer-level work the language cannot
 // express (memory the OS owns, dialogs, a child process's pipes).
+#include <winsock2.h>
 #include <windows.h>
 #include <shlobj.h>
 #include <commdlg.h>
@@ -223,6 +224,137 @@ int64_t gs_ime_result(uint64_t hwnd, uint8_t *out, int64_t cap) {
     }
     ImmReleaseContext((HWND)(uintptr_t)hwnd, imc);
     return r;
+}
+
+
+// --- a tiny local control server, so a script (or an MCP bridge) can drive the
+// editor the way a person does: type, click, run menu items and grab a frame.
+static SOCKET g_mcp_l = INVALID_SOCKET, g_mcp_c = INVALID_SOCKET;
+static char g_mcp_in[65536];
+static int g_mcp_inlen = 0;
+
+int64_t gs_mcp_start(uint64_t hwnd, int64_t port) {
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 0;
+    g_mcp_l = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (g_mcp_l == INVALID_SOCKET) return 0;
+    int one = 1;
+    setsockopt(g_mcp_l, SOL_SOCKET, SO_REUSEADDR, (const char *)&one, sizeof(one));
+    struct sockaddr_in a;
+    memset(&a, 0, sizeof(a));
+    a.sin_family = AF_INET;
+    a.sin_port = htons((unsigned short)port);
+    a.sin_addr.s_addr = inet_addr("127.0.0.1");
+    if (bind(g_mcp_l, (struct sockaddr *)&a, sizeof(a)) != 0) return 0;
+    if (listen(g_mcp_l, 2) != 0) return 0;
+    u_long nb = 1;
+    ioctlsocket(g_mcp_l, FIONBIO, &nb);
+    SetTimer((HWND)(uintptr_t)hwnd, 7, 30, NULL);
+    return 1;
+}
+
+int64_t gs_mcp_poll(uint8_t *out, int64_t cap) {
+    if (g_mcp_l == INVALID_SOCKET) return 0;
+    if (g_mcp_c == INVALID_SOCKET) {
+        g_mcp_c = accept(g_mcp_l, NULL, NULL);
+        if (g_mcp_c == INVALID_SOCKET) return 0;
+        u_long nb = 1;
+        ioctlsocket(g_mcp_c, FIONBIO, &nb);
+        g_mcp_inlen = 0;
+    }
+    char tmp[4096];
+    int got = recv(g_mcp_c, tmp, (int)sizeof(tmp), 0);
+    if (got == 0) { closesocket(g_mcp_c); g_mcp_c = INVALID_SOCKET; return 0; }
+    if (got > 0) {
+        if (g_mcp_inlen + got < (int)sizeof(g_mcp_in) - 1) {
+            memcpy(g_mcp_in + g_mcp_inlen, tmp, (size_t)got);
+            g_mcp_inlen += got;
+            g_mcp_in[g_mcp_inlen] = 0;
+        }
+    }
+    // one request per line; anything after the newline waits for the next poll
+    for (int i = 0; i < g_mcp_inlen; i++) {
+        if (g_mcp_in[i] != '\n') continue;
+        int n = i;
+        if (n > 0 && g_mcp_in[n - 1] == '\r') n--;
+        if (n > cap - 1) n = (int)cap - 1;
+        memcpy(out, g_mcp_in, (size_t)n);
+        out[n] = 0;
+        memmove(g_mcp_in, g_mcp_in + i + 1, (size_t)(g_mcp_inlen - i - 1));
+        g_mcp_inlen -= i + 1;
+        return n;
+    }
+    return 0;
+}
+
+void gs_mcp_send(const uint8_t *s, int64_t n) {
+    if (g_mcp_c == INVALID_SOCKET) return;
+    while (n > 0) {
+        int k = send(g_mcp_c, (const char *)s, (int)n, 0);
+        if (k <= 0) { closesocket(g_mcp_c); g_mcp_c = INVALID_SOCKET; return; }
+        s += k;
+        n -= k;
+    }
+}
+
+// A frame of the client area as a BMP; the caller names the rectangle in
+// physical pixels and gets the number of bytes written.
+int64_t gs_capture(uint64_t hwnd, int64_t x, int64_t y, int64_t w, int64_t h,
+                   uint8_t *path, int64_t pcap) {
+    HWND hw = (HWND)(uintptr_t)hwnd;
+    RECT rc;
+    GetClientRect(hw, &rc);
+    if (w <= 0 || h <= 0) { x = 0; y = 0; w = rc.right; h = rc.bottom; }
+    if (x + w > rc.right) w = rc.right - x;
+    if (y + h > rc.bottom) h = rc.bottom - y;
+    if (w <= 0 || h <= 0) return 0;
+    HDC sdc = GetDC(hw);
+    HDC mdc = CreateCompatibleDC(sdc);
+    HBITMAP bmp = CreateCompatibleBitmap(sdc, (int)w, (int)h);
+    HGDIOBJ old = SelectObject(mdc, bmp);
+    BitBlt(mdc, 0, 0, (int)w, (int)h, sdc, (int)x, (int)y, SRCCOPY);
+    BITMAPINFO bi;
+    memset(&bi, 0, sizeof(bi));
+    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bi.bmiHeader.biWidth = (LONG)w;
+    bi.bmiHeader.biHeight = -(LONG)h;
+    bi.bmiHeader.biPlanes = 1;
+    bi.bmiHeader.biBitCount = 32;
+    bi.bmiHeader.biCompression = BI_RGB;
+    int row = (int)w * 4;
+    uint8_t *bits = (uint8_t *)malloc((size_t)(row * h));
+    int64_t total = 0;
+    if (bits && GetDIBits(mdc, bmp, 0, (UINT)h, bits, &bi, DIB_RGB_COLORS)) {
+        WCHAR tmp[MAX_PATH], file[MAX_PATH];
+        GetTempPathW(MAX_PATH, tmp);
+        wcscpy(file, tmp);
+        wcscat(file, L"mayoi_mcp_shot.bmp");
+        HANDLE f = CreateFileW(file, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS,
+                               FILE_ATTRIBUTE_NORMAL, NULL);
+        if (f != INVALID_HANDLE_VALUE) {
+            BITMAPFILEHEADER fh;
+            memset(&fh, 0, sizeof(fh));
+            fh.bfType = 0x4D42;
+            fh.bfOffBits = sizeof(fh) + sizeof(BITMAPINFOHEADER);
+            fh.bfSize = fh.bfOffBits + row * (int)h;
+            BITMAPINFOHEADER ih = bi.bmiHeader;
+            ih.biSizeImage = row * (int)h;
+            DWORD wr = 0;
+            WriteFile(f, &fh, sizeof(fh), &wr, NULL);
+            WriteFile(f, &ih, sizeof(ih), &wr, NULL);
+            WriteFile(f, bits, (DWORD)(row * h), &wr, NULL);
+            CloseHandle(f);
+            total = fh.bfSize;
+            int64_t n = wide_to_utf8(file, wcslen(file), path, (size_t)pcap);
+            if (n > 0 && n < pcap) path[n] = 0;
+        }
+    }
+    if (bits) free(bits);
+    SelectObject(mdc, old);
+    DeleteObject(bmp);
+    DeleteDC(mdc);
+    ReleaseDC(hw, sdc);
+    return total;
 }
 
 int64_t gs_ime_comp(uint64_t hwnd, uint8_t *out, int64_t cap) {
