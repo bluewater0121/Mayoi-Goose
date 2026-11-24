@@ -207,7 +207,7 @@ fn main() {
                 let n = win::ime_result(win::hwnd, ib[0], 1024);
                 state::ime_composing = false;
                 state::ime_comp.resize(0);
-                if n > 0 { input::typed(ib[0..n]); }
+                if n > 0 { input::ime_into_field(ib[0..n]); }
                 if state::focus == 0 && state::cur >= 0 && vim::on() { vim::sync(); vim::set_mode(1); }
                 state::ime_skip_until = win::ticks() + 400;
                 win::invalidate();

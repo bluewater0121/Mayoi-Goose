@@ -198,6 +198,20 @@ fn line_end(l: i32) -> i64 {
 }
 
 // trim_utf8 drops one character, not one byte, from the end of an input buffer.
+// push_char appends one UTF-16 code unit as UTF-8, so a Chinese character
+// typed into a search box stays a character instead of a truncated byte.
+fn push_char(b: u8[>..]&, c: u16) {
+    if c < 0x80 { b.push(c as u8); }
+    else if c < 0x800 {
+        b.push((0xC0 | (c >> 6)) as u8);
+        b.push((0x80 | (c & 0x3F)) as u8);
+    } else {
+        b.push((0xE0 | (c >> 12)) as u8);
+        b.push((0x80 | ((c >> 6) & 0x3F)) as u8);
+        b.push((0x80 | (c & 0x3F)) as u8);
+    }
+}
+
 fn trim_utf8(b: u8[>..]&) {
     if b.len == 0 { return; }
     var p: i64 = b.len - 1;

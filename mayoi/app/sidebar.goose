@@ -126,7 +126,7 @@ fn sidebar_char(c: u16) {
         if c == 8 {
             if state::scm_msg.len > 0 { text::trim_utf8(&state::scm_msg); }
         } else if c >= 32 {
-            state::scm_msg.push(c as u8);
+            text::push_char(&state::scm_msg, c);
         }
         win::invalidate();
     }

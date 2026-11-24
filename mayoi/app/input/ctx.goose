@@ -98,7 +98,7 @@ fn rename_char(c: u16) {
     if c == 8 {
         if state::ren_buf.len > 0 { text::trim_utf8(&state::ren_buf); }
     } else if c >= 32 {
-        state::ren_buf.push(c as u8);
+        text::push_char(&state::ren_buf, c);
     }
     win::invalidate();
 }
@@ -108,6 +108,24 @@ fn confirm_delete(name: const u8[:]) -> bool {
 }
 
 fn ctx_run(act: i32) {
+    if act >= 60 && act <= 71 {          // the Source Control "..." menu
+        chrome::ctx_close();
+        if act == 60 { chrome::scm_commit(); }
+        else if act == 61 { chrome::scm_commit(); chrome::git_push(); }
+        else if act == 62 { chrome::git_fetch(); }
+        else if act == 63 { chrome::git_pull(); }
+        else if act == 64 { chrome::git_push(); }
+        else if act == 65 { chrome::git_stage_all(); }
+        else if act == 66 { chrome::git_unstage_all(); }
+        else if act == 67 { chrome::git_stash(false); }
+        else if act == 68 { chrome::git_stash(true); }
+        else if act == 69 { chrome::git_amend(); }
+        else if act == 70 { chrome::git_undo_commit(); }
+        else if act == 71 { chrome::reload_scm(); }
+        state::scm_loaded = true;
+        win::invalidate();
+        return;
+    }
     let path: u8[>..] = copy(chrome::ctx_path);
     let dir: u8[>..] = copy(chrome::ctx_dir);
     if act == 1 {                       // new file

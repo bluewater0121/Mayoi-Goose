@@ -61,32 +61,7 @@ fn type_char(c: u16) {
 
 fn type_bytes(b: const u8[:]) {
     if state::focus == 0 && state::cur >= 0 && vim::on() { vim::sync(); vim::set_mode(1); }
-    var i: i64 = 0;
-    while i < b.len {
-        let c0 = b[i];
-        if c0 < 0x80 { type_char(c0 as u16); i++; continue; }
-        var cp: i64 = 0;
-        if (c0 & 0xE0) == 0xC0 && i + 1 < b.len {
-            cp = ((c0 & 0x1F) as i64 << 6) | (b[i + 1] & 0x3F);
-            i += 2;
-        } else if (c0 & 0xF0) == 0xE0 && i + 2 < b.len {
-            cp = ((c0 & 0x0F) as i64 << 12) | ((b[i + 1] & 0x3F) as i64 << 6) | (b[i + 2] & 0x3F);
-            i += 3;
-        } else if (c0 & 0xF8) == 0xF0 && i + 3 < b.len {
-            cp = ((c0 & 0x07) as i64 << 18) | ((b[i + 1] & 0x3F) as i64 << 12) | ((b[i + 2] & 0x3F) as i64 << 6) | (b[i + 3] & 0x3F);
-            i += 4;
-        } else { i++; continue; }
-        if cp <= 0xFFFF { type_char(cp as u16); }
-        else {
-            var u: u8[>..] = [];
-            let v = cp - 0x10000;
-            u.push((0xF0 | (v >> 18)) as u8);
-            u.push((0x80 | ((v >> 12) & 0x3F)) as u8);
-            u.push((0x80 | ((v >> 6) & 0x3F)) as u8);
-            u.push((0x80 | (v & 0x3F)) as u8);
-            input::typed(u);
-        }
-    }
+    input::ime_into_field(b);
 }
 
 fn key_vk(name: const u8[:], n: i64) -> i32 {

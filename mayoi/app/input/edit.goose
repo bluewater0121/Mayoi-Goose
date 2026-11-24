@@ -51,6 +51,29 @@ fn typed(b: const u8[:]) {
     input::ensure_visible();
 }
 
+// ime_into_field pushes a whole IME result to whichever box has the focus,
+// not always to the editor: search, its include/exclude filters, the SCM
+// message, a rename box and the editor each take it the way typing would.
+fn ime_into_field(b: const u8[:]) {
+    var i: i64 = 0;
+    while i < b.len {
+        let c0 = b[i];
+        var cp: i64 = 0;
+        if c0 < 0x80 { cp = c0; i++; }
+        else if (c0 & 0xE0) == 0xC0 && i + 1 < b.len {
+            cp = ((c0 & 0x1F) as i64 << 6) | (b[i + 1] & 0x3F); i += 2;
+        } else if (c0 & 0xF0) == 0xE0 && i + 2 < b.len {
+            cp = ((c0 & 0x0F) as i64 << 12) | ((b[i + 1] & 0x3F) as i64 << 6) | (b[i + 2] & 0x3F); i += 3;
+        } else if (c0 & 0xF8) == 0xF0 && i + 3 < b.len {
+            cp = ((c0 & 0x07) as i64 << 18) | ((b[i + 1] & 0x3F) as i64 << 12) | ((b[i + 2] & 0x3F) as i64 << 6) | (b[i + 3] & 0x3F); i += 4;
+        } else { i++; continue; }
+        let c = cp as u16;
+        if state::ren_active { input::rename_char(c); }
+        else if state::view >= 2 && state::sidebar_open && state::focus == 1 { chrome::sidebar_char(c); }
+        else { char_typed(c); }
+    }
+}
+
 fn char_typed(c: u16) {
     if state::overlay != 0 { input::overlay_char(c); return; }
     if state::focus == 2 && state::panel_open && state::panel_tab == 2 {

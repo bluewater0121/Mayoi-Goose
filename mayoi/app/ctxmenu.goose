@@ -153,6 +153,33 @@ fn ctx_open_editor(x: i32, y: i32) {
     ctx_place(x, y);
 }
 
+// ctx_open_scm is the git actions behind the "..." of the Source Control view.
+fn ctx_open_scm(x: i32, y: i32) {
+    ctx_open = true;
+    ctx_items.resize(0);
+    ctx_sel = -1;
+    ctx_where = 5;
+    ctx_add("提交", 60, true);
+    ctx_add("提交并推送", 61, true);
+    ctx_sep();
+    ctx_add("抓取", 62, true);
+    ctx_add("拉取", 63, true);
+    ctx_add("推送", 64, true);
+    ctx_sep();
+    ctx_add("暂存所有更改", 65, true);
+    ctx_add("取消暂存所有更改", 66, true);
+    ctx_sep();
+    ctx_add("储藏更改…", 67, true);
+    ctx_add("储藏更改（含未跟踪文件）…", 68, true);
+    ctx_sep();
+    ctx_add("修改上次提交", 69, true);
+    ctx_add("撤销上次提交", 70, true);
+    ctx_sep();
+    ctx_add("刷新源代码管理", 71, true);
+    let w = win::measure(state::f_tree, "储藏更改（含未跟踪文件）…") + state::px(56);
+    ctx_place(x - w, y);
+}
+
 fn ctx_hover(x: i32, y: i32) {
     if !ctx_open { return; }
     var i: i64 = 0;

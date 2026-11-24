@@ -10,6 +10,7 @@ import app.state;
 import app.layout;
 import app.input.vk;
 import app.plugins.model;
+import editor.text;
 import .model;
 import .paint;
 import .store;
@@ -230,7 +231,7 @@ fn key(vk: i32, ctrl: bool, shift: bool, alt: bool) -> bool {
 fn typed(cp: u16) {
     if cp < 32 { return; }
     if prefs::edit == -2 {
-        prefs::query.push(cp as u8);
+        text::push_char(&prefs::query, cp);
         prefs::scroll = 0;
         return;
     }
@@ -239,7 +240,7 @@ fn typed(cp: u16) {
             if (cp >= '0' && cp <= '9') || cp == '.' || cp == '-' { prefs::edit_buf.push(cp as u8); }
             return;
         }
-        if prefs::edit_buf.len < 360 { prefs::edit_buf.push(cp as u8); }
+        if prefs::edit_buf.len < 360 { text::push_char(&prefs::edit_buf, cp); }
     }
 }
 

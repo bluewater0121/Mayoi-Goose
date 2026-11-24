@@ -44,6 +44,12 @@ fn scm_body(top: i32) {
     var label: u8[>..] = [];
     if scm_branch.len > 0 { label.append(scm_branch); } else { label.append("HEAD"); }
     ch(state::f_small, state::px(34), by + state::px(7), label, p.text);
+    // the "..." at the branch row opens the git actions, as the reference does
+    let mx = w - state::px(30);
+    let my = by - state::px(1);
+    win::round_rect(mx, my, state::px(20), state::px(20), state::px(4), state::px(4), p.chrome);
+    icon_at(15, mx + state::px(3), my + state::px(3), state::px(14), p.muted);
+    state::add_hit(state::HIT_SCM_MORE, mx - state::px(4), my - state::px(3), state::px(28), state::px(26), 0);
     if scm_err {
         ch(state::f_small, w - state::px(14) - win::measure(state::f_small, i18n::t("未找到 Git")), by + state::px(7), i18n::t("未找到 Git"), p.faint);
     }

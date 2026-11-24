@@ -62,6 +62,11 @@ fn mouse_down(x: i32, y: i32, button: i32) {
     let hi = state::find_hit(x, y);
     if hi < 0 { return; }
     let h = state::hits[hi as i64];
+    if h.kind == state::HIT_SCM_MORE {
+        chrome::ctx_open_scm(x, y);
+        win::invalidate();
+        return;
+    }
     if state::overlay == 0 && chrome::sidebar_click(h.kind, h.arg) { return; }
     if state::overlay != 0 {
         if h.kind == state::HIT_OVERLAY && h.arg > 0 {

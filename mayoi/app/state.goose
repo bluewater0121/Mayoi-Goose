@@ -159,6 +159,7 @@ let HIT_PREFS_PL_BACK = 52;
 let HIT_PREVIEW = 53; let HIT_PREFS_SCOPE = 54;
 let HIT_PROJECT = 55;
 let HIT_PROJECT_NEW = 56;
+let HIT_SCM_MORE = 57;
 
 fn hit(kind: i32, x: i32, y: i32, w: i32, h: i32, arg: i64) -> Hit {
     return Hit { x, y, w, h, kind, arg };

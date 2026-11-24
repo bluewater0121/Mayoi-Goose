@@ -423,10 +423,10 @@ fn search_char(c: u16) {
         return;
     }
     if c < 32 { return; }
-    if state::search_field == 0 { state::search_q.push(c as u8); run_search(); }
-    else if state::search_field == 1 { state::search_rep.push(c as u8); }
-    else if state::search_field == 2 { state::search_inc.push(c as u8); run_search(); }
-    else { state::search_exc.push(c as u8); run_search(); }
+    if state::search_field == 0 { text::push_char(&state::search_q, c); run_search(); }
+    else if state::search_field == 1 { text::push_char(&state::search_rep, c); }
+    else if state::search_field == 2 { text::push_char(&state::search_inc, c); run_search(); }
+    else { text::push_char(&state::search_exc, c); run_search(); }
     win::invalidate();
 }
 
