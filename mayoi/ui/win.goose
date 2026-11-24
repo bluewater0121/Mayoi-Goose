@@ -118,6 +118,7 @@ extern fn gs_confirm(hwnd: u64, text: const u8&, len: i64) -> i64;
 extern fn gs_pick_folder(hwnd: u64, out: u8&, cap: i64) -> i64;
 extern fn gs_ime_pos(hwnd: u64, x: i32, y: i32) -> i64;
 extern fn gs_ime_result(hwnd: u64, out: u8&, cap: i64) -> i64;
+extern fn gs_ime_comp(hwnd: u64, out: u8&, cap: i64) -> i64;
 extern fn gs_pick_file(hwnd: u64, out: u8&, cap: i64) -> i64;
 extern fn gs_run_cmd(cmd: const u8&, len: i64, out: u8&, cap: i64, cwd: const u8&, cwdlen: i64) -> i64;
 extern fn gs_file_time(path: const u8&, len: i64) -> i64;
@@ -470,6 +471,7 @@ fn pick_file(h: u64, out: u8&, cap: i64) -> i64 { return gs_pick_file(h, out, ca
 fn pick_folder(h: u64, out: u8&, cap: i64) -> i64 { return gs_pick_folder(h, out, cap); }
 fn ime_pos(h: u64, x: i32, y: i32) { gs_ime_pos(h, x, y); }
 fn ime_result(h: u64, out: u8&, cap: i64) -> i64 { return gs_ime_result(h, out, cap); }
+fn ime_comp(h: u64, out: u8&, cap: i64) -> i64 { return gs_ime_comp(h, out, cap); }
 
 // run_silent runs a command line and keeps its output, which the caller
 // does not want.

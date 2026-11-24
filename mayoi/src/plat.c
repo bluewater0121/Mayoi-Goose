@@ -225,6 +225,23 @@ int64_t gs_ime_result(uint64_t hwnd, uint8_t *out, int64_t cap) {
     return r;
 }
 
+int64_t gs_ime_comp(uint64_t hwnd, uint8_t *out, int64_t cap) {
+    HIMC imc = ImmGetContext((HWND)(uintptr_t)hwnd);
+    if (!imc) return 0;
+    LONG n = ImmGetCompositionStringW(imc, GCS_COMPSTR, NULL, 0);
+    int64_t r = 0;
+    if (n > 0) {
+        WCHAR *tmp = (WCHAR *)malloc((size_t)n + 2);
+        if (tmp) {
+            LONG m = ImmGetCompositionStringW(imc, GCS_COMPSTR, tmp, n);
+            if (m > 0) r = wide_to_utf8(tmp, (size_t)(m / 2), out, (size_t)cap);
+            free(tmp);
+        }
+    }
+    ImmReleaseContext((HWND)(uintptr_t)hwnd, imc);
+    return r;
+}
+
 int64_t gs_pick_file(uint64_t hwnd, uint8_t *out, int64_t cap) {
     WCHAR tmp[MAX_PATH * 2];
     tmp[0] = 0;

@@ -155,6 +155,8 @@ fn main() {
             continue;
         }
         if msg.m == 0x0102 {                            // WM_CHAR
+            if state::ime_composing || win::ticks() < state::ime_skip_until { continue; }
+            if (msg.wp as u16) < 32 { continue; }       // control keys, not text
             if prefs::open { prefs::typed(msg.wp as u16); win::invalidate(); continue; }
             if state::menu_open { continue; }
             if state::ren_active {
@@ -184,17 +186,25 @@ fn main() {
         if msg.m == 0x010F {                            // WM_IME_COMPOSITION
             var ib: u8[>..] = [];
             ib.resize(1024, 0);
-            let n = win::ime_result(win::hwnd, ib[0], 1024);
-            if n > 0 {
-                input::typed(ib[0..n]);
-                state::ime_skip_until = win::ticks() + 250;
+            if (msg.lp & 0x800) != 0 {
+                let n = win::ime_result(win::hwnd, ib[0], 1024);
+                state::ime_composing = false;
+                state::ime_comp.resize(0);
+                if n > 0 { input::typed(ib[0..n]); }
+                state::ime_skip_until = win::ticks() + 400;
+                win::invalidate();
+            } else if (msg.lp & 0x8) != 0 {
+                let n = win::ime_comp(win::hwnd, ib[0], 1024);
+                state::ime_composing = true;
+                state::ime_comp.resize(0);
+                var k: i64 = 0;
+                while k < n { state::ime_comp.push(ib[k]); k++; }
                 win::invalidate();
             }
         }
         if msg.m == 0x0286 {                            // WM_IME_CHAR
-            if win::ticks() < state::ime_skip_until { continue; }
-            input::char_typed(msg.wp as u16);
-            win::invalidate();
+            // the composed text already arrives once as WM_IME_COMPOSITION's
+            // GCS_RESULTSTR; taking this too would insert every Chinese twice
             continue;
         }
         if msg.m == 0x0200 {                            // WM_MOUSEMOVE

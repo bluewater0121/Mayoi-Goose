@@ -525,6 +525,12 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
             win::fill(cx, cy + state::px(2), state::px(2), state::line_h - state::px(4), p.text);
         }
     }
+    // the IME composition (pinyin before it turns into Chinese) sits inline at
+    // the caret, the way the reference shows it, instead of only in the IME box
+    if state::ime_comp.len > 0 && state::focus == 0 {
+        win::text_at(state::f_code, state::ime_x, state::ime_y - state::line_h,
+                     state::ime_comp, p.accent);
+    }
     // an overlay scrollbar at the right edge, only when the buffer runs past
     // the view, thin and rounded like the reference's
     if total > count && count > 0 {
