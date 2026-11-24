@@ -27,7 +27,7 @@ fn paint() {
     state::H = win::frame_h;
     let p = theme::pal;
     win::fill(0, 0, state::W, state::H, p.chrome);
-    chrome::title_bar();
+    if state::title_h > 0 { chrome::title_bar(); }
     if state::sidebar_open { chrome::sidebar(); }
     let x0 = state::right_x();
     let y0 = state::title_h;

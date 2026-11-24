@@ -12,50 +12,16 @@
 #include "shim.h"
 #include "icons.h"
 
-// The window procedure: client area covers the whole window (the app paints
-// its own chrome), while the frame still offers the resize borders.
+// The window procedure: the frame, caption and its buttons are the native
+// Windows ones (the app no longer paints or hit-tests its own chrome).
 static LRESULT CALLBACK gs_proc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
 
-    if (m == WM_NCCALCSIZE && wp == TRUE) {
-        // the client area is the whole window; resize is still offered by NCHITTEST
-        NCCALCSIZE_PARAMS *ncp = (NCCALCSIZE_PARAMS *)lp;
-        RECT wr;
-        GetWindowRect(h, &wr);
-        ncp->rgrc[0] = wr;
-        return 0;
-    }
     // WM_SIZE / WM_ACTIVATE / WM_SHOWWINDOW are sent straight to this proc, so
     // the Goose message loop would never see them: forward a copy onto the queue.
     if (m == WM_SIZE) { PostMessageW(h, WM_APP + 2, wp, lp); return 0; }
     if (m == WM_ACTIVATE) { PostMessageW(h, WM_APP + 3, wp, lp); return 0; }
     if (m == WM_SHOWWINDOW) { PostMessageW(h, WM_APP + 4, wp, lp); return 0; }
     if (m == WM_DPICHANGED) { PostMessageW(h, WM_APP + 5, wp, lp); return 0; }
-    if (m == WM_NCHITTEST) {
-        { static int shown=0; if(!shown){ shown=1; RECT cr; GetClientRect(h,&cr); fprintf(stderr,"client now=%ld,%ld,%ld,%ld\n",(long)cr.left,(long)cr.top,(long)cr.right,(long)cr.bottom);} }
-        POINT pt;
-        pt.x = (int)(short)LOWORD(lp);
-        pt.y = (int)(short)HIWORD(lp);
-        RECT rc;
-        GetWindowRect(h, &rc);
-        int b = 5;
-        int left = pt.x < rc.left + b, right = pt.x >= rc.right - b;
-        int top = pt.y < rc.top + b, bot = pt.y >= rc.bottom - b;
-        if (top && left) return HTTOPLEFT;
-        if (top && right) return HTTOPRIGHT;
-        if (bot && left) return HTBOTTOMLEFT;
-        if (bot && right) return HTBOTTOMRIGHT;
-        if (top) return HTTOP;
-        if (bot) return HTBOTTOM;
-        if (left) return HTLEFT;
-        if (right) return HTRIGHT;
-        {   // drag by the empty parts of the title bar (not the buttons / command box)
-            int cx = (int)(pt.x - rc.left), cy = (int)(pt.y - rc.top);
-            int inCmd = (cx > 280 && cx < 810 && cy > 5 && cy < 42);
-            int inBtn = cx > rc.right - 250;   // minimize / maximize / close
-            if (cy >= 0 && cy < 48 && cx >= 92 && !inCmd && !inBtn) return HTCAPTION;
-        }
-        return HTCLIENT;
-    }
     return DefWindowProcW(h, m, wp, lp);
 }
 

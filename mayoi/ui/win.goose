@@ -220,8 +220,9 @@ fn open(title: const u8[:], w: i32, h: i32) -> bool {
     guard atom != 0 else { return false; }
     var cn = u16z("MayoiGooseWindow");
     var tt = u16z(title);
-    // Frameless (the app draws its own title bar) but still resizable.
-    let style: u32 = 0x80040000 | 0x02000000 | 0x04000000 | 0x00020000 | 0x00010000;
+    // A normal Windows frame: caption, system menu, resize border and the
+    // minimize / maximize / close buttons are all drawn and handled by Windows.
+    let style: u32 = 0x00CF0000;
     hwnd = create_window(0, cn[0], tt[0], style, 40, 30, w, h,
                          0, 0, inst, 0);
     guard hwnd != 0 else { return false; }
