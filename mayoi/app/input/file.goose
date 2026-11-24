@@ -23,6 +23,7 @@ import app.overlay;
 fn new_file() {
     let i = text::untitled();
     state::cur = i;
+    state::focus = 0;
     syntax::invalidate();
     text::reindex();
     app::set_title(state::docs[i].name);

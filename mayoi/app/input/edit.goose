@@ -28,7 +28,7 @@ fn visible_rows() -> i32 {
 }
 
 fn ensure_visible() {
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     let line, col = text::line_col(d.sel_b);
     let rows = input::visible_rows();
@@ -41,7 +41,7 @@ fn ensure_visible() {
 }
 
 fn typed(b: const u8[:]) {
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     let a = text::sel_min(state::cur);
     let e = text::sel_max(state::cur);
@@ -62,7 +62,7 @@ fn char_typed(c: u16) {
         win::invalidate();
         return;
     }
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     var b: u8[>..] = [];
     if c < 0x80 { b.push(c as u8); }
     else if c < 0x800 { b.push((0xC0 | (c >> 6)) as u8); b.push((0x80 | (c & 0x3F)) as u8); }
@@ -79,7 +79,7 @@ fn char_typed(c: u16) {
 }
 
 fn newline() {
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     let a = text::sel_min(state::cur);
     let e = text::sel_max(state::cur);
@@ -100,7 +100,7 @@ fn newline() {
 }
 
 fn backspace() {
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     let a = text::sel_min(state::cur);
     let e = text::sel_max(state::cur);
@@ -123,7 +123,7 @@ fn backspace() {
 }
 
 fn delete_forward() {
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     let a = text::sel_min(state::cur);
     let e = text::sel_max(state::cur);
@@ -205,7 +205,7 @@ fn word_move(dir: i32, keep: bool) {
 }
 
 fn click_editor(mx: i32, my: i32, keep: bool) {
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     var line = (my - state::ed_top - state::px(8)) / state::line_h + d.scroll;
     if line < 0 { line = 0; }
@@ -226,7 +226,7 @@ fn wheel(notches: i32) {
         win::invalidate();
         return;
     }
-    if state::cur < 0 { return; }
+    if state::cur < 0 || state::cur >= state::docs.len as i32 { return; }
     let d .= state::docs[state::cur];
     var s = d.scroll - notches * 3;
     if s < 0 { s = 0; }

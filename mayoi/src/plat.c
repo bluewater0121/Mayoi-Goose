@@ -169,6 +169,7 @@ int64_t gs_confirm(uint64_t hwnd, const uint8_t *text, int64_t len) {
 }
 
 int64_t gs_pick_folder(uint64_t hwnd, uint8_t *out, int64_t cap) {
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     WCHAR tmp[MAX_PATH];
     BROWSEINFOW bi;
     memset(&bi, 0, sizeof bi);
@@ -182,6 +183,7 @@ int64_t gs_pick_folder(uint64_t hwnd, uint8_t *out, int64_t cap) {
         n = wide_to_utf8(tmp, wcslen(tmp), out, (size_t)cap);
     }
     CoTaskMemFree(id);
+    CoUninitialize();
     return n;
 }
 
