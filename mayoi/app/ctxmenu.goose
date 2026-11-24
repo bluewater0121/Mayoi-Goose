@@ -6,6 +6,30 @@ import i18n;
 import ui.theme;
 import ui.win;
 import explore.tree;
+import app.menu.model;
+
+// ctx_open_menu drops the items of a top-level menu under its label, the
+// dropdown people expect from a normal menu bar.
+fn ctx_open_menu(g: i64, ax: i32) {
+    ctx_open = true;
+    ctx_items.resize(0);
+    ctx_sel = -1;
+    ctx_where = 6;
+    let lo = menu::top[g];
+    let hi = menu::group_end(lo);
+    var i: i64 = lo + 1;
+    var n: i32 = 0;
+    while i < hi {
+        if menu::items[i].flags == menu::SEPARATOR {
+            if n > 0 { ctx_sep(); }
+        } else {
+            let lab = menu::label_at(i);
+            if lab.len > 0 { ctx_add(lab, (1000 + i) as i32, true); n++; }
+        }
+        i++;
+    }
+    ctx_place(ax, state::title_h);
+}
 
 struct CtxItem { label: u8[..80], act: i32, enabled: bool, sep: bool, top: i32, h: i32 }
 

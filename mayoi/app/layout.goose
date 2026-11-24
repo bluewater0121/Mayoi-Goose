@@ -24,7 +24,7 @@ var show_welcome: bool = true;
 
 fn layout() {
     state::s = 1;
-    state::title_h = 0;   // Windows draws the caption now
+    state::title_h = state::px(28);   // the app menu bar under the native caption
     state::tab_h = state::px(42);
     state::crumb_h = state::px(41);
     state::status_h = state::px(30);

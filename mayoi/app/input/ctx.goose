@@ -12,6 +12,7 @@ import editor.syntax;
 import app.draw;
 import app.sidebar;
 import app.ctxmenu;
+import app.menu.action;
 
 fn clip_put_text(s: const u8[:]) {
     if s.len == 0 { return; }
@@ -108,6 +109,12 @@ fn confirm_delete(name: const u8[:]) -> bool {
 }
 
 fn ctx_run(act: i32) {
+    if act >= 1000 {                    // an item from the menu bar
+        chrome::ctx_close();
+        menu::run((act - 1000) as i64);
+        win::invalidate();
+        return;
+    }
     if act >= 60 && act <= 71 {          // the Source Control "..." menu
         chrome::ctx_close();
         if act == 60 { chrome::scm_commit(); }

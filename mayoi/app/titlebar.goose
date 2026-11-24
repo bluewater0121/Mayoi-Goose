@@ -7,7 +7,29 @@ import ui.theme;
 import ui.win;
 import editor.text;
 import explore.tree;
+import app.menu.model;
 // --- title bar ---------------------------------------------------------------
+
+// menu_bar is the flat row of top-level menus that sits under the native
+// caption, the way a normal Windows program lines its menus up.
+fn menu_bar() {
+    let p = theme::pal;
+    win::fill(0, 0, state::W, state::title_h, p.chrome);
+    win::fill(0, state::title_h - 1, state::W, 1, p.border);
+    let f = state::f_ui;
+    let ty = (state::title_h - win::th(f)) / 2;
+    var x = state::px(8);
+    var i: i32 = 0;
+    while i < menu::top.len as i32 {
+        let label = menu::label_at(menu::top[i]);
+        let w = win::measure(f, label) + state::px(22);
+        win::text_at(f, x + state::px(11), ty, label, p.text);
+        state::add_hit(state::HIT_MENUBAR, x, 0, w, state::title_h, i as i64);
+        x = x + w;
+        i++;
+    }
+    win::fill(0, 0, state::W, 1, p.border);
+}
 
 fn title_bar() {
     let p = theme::pal;

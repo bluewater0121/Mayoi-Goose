@@ -65,6 +65,11 @@ fn mouse_down(x: i32, y: i32, button: i32) {
     let hi = state::find_hit(x, y);
     if hi < 0 { return; }
     let h = state::hits[hi as i64];
+    if h.kind == state::HIT_MENUBAR {
+        chrome::ctx_open_menu(h.arg, x);
+        win::invalidate();
+        return;
+    }
     if h.kind == state::HIT_SCM_MORE {
         chrome::ctx_open_scm(x, y);
         win::invalidate();

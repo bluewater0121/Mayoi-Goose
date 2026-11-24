@@ -16,6 +16,9 @@
 // Windows ones (the app no longer paints or hit-tests its own chrome).
 static LRESULT CALLBACK gs_proc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
 
+    // Closing must end the process, not only hide the window.
+    if (m == WM_CLOSE) { DestroyWindow(h); return 0; }
+    if (m == WM_DESTROY) { PostQuitMessage(0); return 0; }
     // WM_SIZE / WM_ACTIVATE / WM_SHOWWINDOW are sent straight to this proc, so
     // the Goose message loop would never see them: forward a copy onto the queue.
     if (m == WM_SIZE) { PostMessageW(h, WM_APP + 2, wp, lp); return 0; }
