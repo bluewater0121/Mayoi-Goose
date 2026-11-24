@@ -197,6 +197,8 @@ fn draw_wrap_row(x0: i32, y0: i32, w: i32, h: i32, line: i32, vis: i32, a: i64, 
     }
     if line == caret_line && caret_col >= col0 && caret_col <= col0 + cells {
         let cx = tx + (caret_col - col0) as i32 * state::cell_w;
+        state::ime_x = cx;
+        state::ime_y = y + lh;
         if state::focus == 0 && state::blink {
             win::fill(cx, y + state::px(2), state::px(2), lh - state::px(4), p.text);
         }
@@ -517,6 +519,8 @@ fn paint(x0: i32, y0: i32, w: i32, h: i32) {
     if state::focus == 0 && state::blink {
         let cx: i32 = tx + (caret_col as i32 - d.scroll_x) * state::cell_w;
         let cy = y0 + lead + (caret_line - first) * state::line_h;
+        state::ime_x = cx;
+        state::ime_y = cy + state::line_h;
         if caret_line >= first && caret_line < first + count {
             win::fill(cx, cy + state::px(2), state::px(2), state::line_h - state::px(4), p.text);
         }

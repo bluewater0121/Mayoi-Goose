@@ -4,6 +4,7 @@
 #include <shlobj.h>
 #include <commdlg.h>
 #include <shellapi.h>
+#include <imm.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -185,6 +186,43 @@ int64_t gs_pick_folder(uint64_t hwnd, uint8_t *out, int64_t cap) {
     CoTaskMemFree(id);
     CoUninitialize();
     return n;
+}
+
+int64_t gs_ime_pos(uint64_t hwnd, int32_t x, int32_t y) {
+    HIMC imc = ImmGetContext((HWND)(uintptr_t)hwnd);
+    if (!imc) return 0;
+    COMPOSITIONFORM cf;
+    memset(&cf, 0, sizeof cf);
+    cf.dwStyle = CFS_POINT;
+    cf.ptCurrentPos.x = x;
+    cf.ptCurrentPos.y = y;
+    ImmSetCompositionWindow(imc, &cf);
+    CANDIDATEFORM cd;
+    memset(&cd, 0, sizeof cd);
+    cd.dwIndex = 0;
+    cd.dwStyle = CFS_CANDIDATEPOS;
+    cd.ptCurrentPos.x = x;
+    cd.ptCurrentPos.y = y;
+    ImmSetCandidateWindow(imc, &cd);
+    ImmReleaseContext((HWND)(uintptr_t)hwnd, imc);
+    return 1;
+}
+
+int64_t gs_ime_result(uint64_t hwnd, uint8_t *out, int64_t cap) {
+    HIMC imc = ImmGetContext((HWND)(uintptr_t)hwnd);
+    if (!imc) return 0;
+    LONG n = ImmGetCompositionStringW(imc, GCS_RESULTSTR, NULL, 0);
+    int64_t r = 0;
+    if (n > 0) {
+        WCHAR *tmp = (WCHAR *)malloc((size_t)n + 2);
+        if (tmp) {
+            LONG m = ImmGetCompositionStringW(imc, GCS_RESULTSTR, tmp, n);
+            if (m > 0) r = wide_to_utf8(tmp, (size_t)(m / 2), out, (size_t)cap);
+            free(tmp);
+        }
+    }
+    ImmReleaseContext((HWND)(uintptr_t)hwnd, imc);
+    return r;
 }
 
 int64_t gs_pick_file(uint64_t hwnd, uint8_t *out, int64_t cap) {

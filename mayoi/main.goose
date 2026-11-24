@@ -90,6 +90,7 @@ fn main() {
 
     var msg: win::Msg = win::Msg { .. };
     while win::get_message(msg, 0, 0, 0) > 0 {
+        if msg.m == 0x010D || msg.m == 0x010F { win::ime_pos(win::hwnd, state::ime_x, state::ime_y); }
         win::translate_message(msg);
         if msg.m == 0x0012 { break; }                  // WM_QUIT
         if msg.m == 0x0010 { win::quit = true; break; } // WM_CLOSE
@@ -180,7 +181,18 @@ fn main() {
             win::invalidate();
             continue;
         }
+        if msg.m == 0x010F {                            // WM_IME_COMPOSITION
+            var ib: u8[>..] = [];
+            ib.resize(1024, 0);
+            let n = win::ime_result(win::hwnd, ib[0], 1024);
+            if n > 0 {
+                input::typed(ib[0..n]);
+                state::ime_skip_until = win::ticks() + 250;
+                win::invalidate();
+            }
+        }
         if msg.m == 0x0286 {                            // WM_IME_CHAR
+            if win::ticks() < state::ime_skip_until { continue; }
             input::char_typed(msg.wp as u16);
             win::invalidate();
             continue;

@@ -35,7 +35,7 @@ $subsys = if ($Console) { "/SUBSYSTEM:CONSOLE" } else { "/SUBSYSTEM:WINDOWS" }
 $cmd = "call `"$vcvars`" >nul 2>&1 && cd /d `"$root`" && " +
        "cl /nologo /O2 /MT /utf-8 /wd4819 /GS- /I src /I assets `"build\mayoi.c`" `"src\plat.c`" `"$rt`" " +
        "/Fe:`"build\$exename`" /link $subsys /ENTRY:mainCRTStartup " +
-       "user32.lib gdi32.lib msimg32.lib shell32.lib ole32.lib comdlg32.lib advapi32.lib"
+       "user32.lib gdi32.lib msimg32.lib shell32.lib ole32.lib comdlg32.lib imm32.lib advapi32.lib"
 cmd /c $cmd
 if ($LASTEXITCODE -ne 0) { throw "cl failed ($LASTEXITCODE)" }
 Write-Output "built: build\$exename"

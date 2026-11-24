@@ -7,6 +7,9 @@ import ui.win;
 var arena: u8[>..] = [];         // all document text, offset-addressed
 var docs: Doc[>..] = [];
 var cur: i32 = -1;
+var ime_x: i32 = 0;
+var ime_y: i32 = 0;
+var ime_skip_until: i64 = 0;
 var lines: i64[>..] = [];        // line starts of the current document
 var lines_doc: i32 = -1;
 var lines_len: i64 = -1;
